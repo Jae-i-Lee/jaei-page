@@ -1,17 +1,10 @@
 ---
-title: "Welcome to the New Blog"
-pubDate: "2026-01-19"
-description: "This is the first post on our new Astro-powered blog."
-author: "Angelo Pescetto"
-category: "General"
-tags: ["welcome", "community", "astro"]
-image: "/blog/welcome.webp"
+title: "시작하며"
+description: "jaei.page에 첫 기록을 남깁니다."
+pubDate: "2026-07-31"
+category: "essay"
+tags:
+  - "회고"
 ---
 
-# Welcome!
-
-We are excited to launch our new blog. Here we will share updates, tutorials, and more.
-
-## Why Astro?
-
-Astro is fast, flexible, and perfect for content-driven websites like this blog.
+여기에 글을 작성합니다. 군더더기 없는 문장으로 생각을 정리해 나갈 공간입니다.
