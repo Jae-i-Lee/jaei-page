@@ -1,6 +1,7 @@
 import ogImage from "@/assets/og-image.png";
 
 export const siteConfig = {
+  name: "네로",
   description:
     "사색과 일상을 기록하는 공간입니다. 군더더기 없는 문장으로 생각을 정리합니다.",
   url: "https://jaei.page",
