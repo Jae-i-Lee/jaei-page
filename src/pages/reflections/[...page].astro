@@ -34,7 +34,7 @@ const metadata = {
     </div>
     <div class="relative mx-auto max-w-5xl">
       <Headline
-        tagline="Blog"
+        tagline="reflections"
         title="Our Publications"
         subtitle="Explore the latest news, tutorials, and articles from our team."
         classes={{
@@ -46,7 +46,7 @@ const metadata = {
       />
 
       <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {blog.map((post) => <PostItem post={post} />)}
+        {reflections.map((post) => <PostItem post={post} />)}
       </div>
       <Pagination page={page} />
     </div>
