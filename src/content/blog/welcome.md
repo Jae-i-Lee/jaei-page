@@ -1,8 +1,8 @@
 ---
 title: "시작하며"
-description: "jaei.page에 첫 기록을 남깁니다."
-pubDate: "2026-07-31"
-author: "Jaei"
+description: "아직 기록이 없습니다"
+pubDate: "2026-08-01"
+author: "네로"
 category: "essay"
 tags:
   - "회고"
