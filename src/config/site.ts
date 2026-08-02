@@ -11,7 +11,7 @@ export const siteConfig = {
   twitter: "@_Jae_i",
   ogImage: ogImage,
   socialLinks: {
-    twitter: "https://x.com",
+    twitter: "https://x.com/_Jae_i",
     github: "",
     discord: "",
   },
