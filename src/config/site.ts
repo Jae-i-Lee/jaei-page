@@ -12,7 +12,7 @@ export const siteConfig = {
   ogImage: ogImage,
   socialLinks: {
     twitter: "https://x.com/_Jae_i",
-    github: "",
+    email: "nyxia159@gmail.com",
     discord: "",
   },
   navLinks: [
