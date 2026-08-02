@@ -1,72 +1,24 @@
-import rss from "@astrojs/rss";
-import { getCollection } from "astro:content";
-import { siteConfig } from "@/config/site";
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+import { siteConfig } from '@/config/site';
 
 export async function GET(context) {
-  const blog = await getCollection("philosophy");
+  const psychology = await getCollection('psychology');
+  const philosophy = await getCollection('philosophy');
+  const reflections = await getCollection('reflections');
+
+  const allPosts = [...psychology, ...philosophy, ...reflections];
+  const sortedPosts = allPosts.sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
 
   return rss({
     title: siteConfig.name,
-    description: siteConfig.description,
+    description: '우리는 종종 정답을 찾으려 밤을 헤매지만, 때로는 좋은 질문 하나를 남기는 것만으로도 충분한 밤이 있습니다.', //
     site: context.site,
-    items: philosophy
-      .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-      .map((post) => ({
-        title: post.data.title,
-        pubDate: post.data.pubDate,
-        description: post.data.description,
-        link: `/philosophy/${post.id}/`,
-        content: post.body, // Optional: include full content
-        customData: post.data.author
-          ? `<author>${post.data.author}</author>`
-          : undefined,
-      })),
-    customData: `<language>${siteConfig.locale}</language>`,
-  });
-}
-
-export async function GET(context) {
-  const blog = await getCollection("psychology");
-
-  return rss({
-    title: siteConfig.name,
-    description: siteConfig.description,
-    site: context.site,
-    items: psychology
-      .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-      .map((post) => ({
-        title: post.data.title,
-        pubDate: post.data.pubDate,
-        description: post.data.description,
-        link: `/psychology/${post.id}/`,
-        content: post.body, // Optional: include full content
-        customData: post.data.author
-          ? `<author>${post.data.author}</author>`
-          : undefined,
-      })),
-    customData: `<language>${siteConfig.locale}</language>`,
-  });
-}
-
-export async function GET(context) {
-  const blog = await getCollection("reflections");
-
-  return rss({
-    title: siteConfig.name,
-    description: siteConfig.description,
-    site: context.site,
-    items: reflections
-      .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-      .map((post) => ({
-        title: post.data.title,
-        pubDate: post.data.pubDate,
-        description: post.data.description,
-        link: `/reflections/${post.id}/`,
-        content: post.body, // Optional: include full content
-        customData: post.data.author
-          ? `<author>${post.data.author}</author>`
-          : undefined,
-      })),
-    customData: `<language>${siteConfig.locale}</language>`,
+    items: sortedPosts.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      link: `/${post.collection}/${post.slug || post.id}/`,
+    })),
   });
 }
