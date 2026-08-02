@@ -1,7 +1,7 @@
 import ogImage from "@/assets/og-image.png";
 
 export const siteConfig = {
-  name: "네로",
+  name: "Nero's Archive",
   description:
     "사색과 일상을 기록하는 공간입니다. 군더더기 없는 문장으로 생각을 정리합니다.",
   url: "https://jaei.page",
@@ -11,8 +11,8 @@ export const siteConfig = {
   twitter: "@_Jae_i",
   ogImage: ogImage,
   socialLinks: {
-    twitter: "https://x.com/_Jae_i",
-    email: "nyxia159@gmail.com",
+    twitter: "https://x.com",
+    github: "",
     discord: "",
   },
   navLinks: [
