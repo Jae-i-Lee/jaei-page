@@ -18,6 +18,8 @@ export const siteConfig = {
   navLinks: [
     { text: "Home", href: "/" },
     { text: "About", href: "/about" },
-    { text: "Blog", href: "/blog" },
+    { text: "Psychology", href: "/blog/category/psychology" },
+    { text: "Philosophy", href: "/blog/category/philosophy" },
+    { text: "Reflections", href: "/blog/category/reflections" },
   ],
 };

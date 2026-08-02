@@ -38,6 +38,10 @@
   --card: #0a0a0a;
 }
 
+html {
+  overflow-y: scroll;
+}
+
 /* Base styles using variables */
 @layer base {
   body {
