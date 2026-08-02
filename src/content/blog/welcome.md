@@ -2,6 +2,7 @@
 title: "시작하며"
 description: "jaei.page에 첫 기록을 남깁니다."
 pubDate: "2026-07-31"
+author: "Jaei"
 category: "essay"
 tags:
   - "회고"
