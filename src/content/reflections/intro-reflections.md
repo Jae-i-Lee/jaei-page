@@ -1,6 +1,7 @@
 ---
 title: "사색: 덤덤함 속의 다정함"
-date: 2026-08-02
+pubDate: 2026-08-02
+author: "Jaei"
 category: "reflections"
 tags: ["사색"]
 description: "현상과 감정을 섣불리 재단하지 않고 지켜보는 기록입니다."
