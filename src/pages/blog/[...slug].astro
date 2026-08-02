@@ -1,7 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Schema from "@/components/seo/Schema.astro";
-
 import { getCollection, render } from "astro:content";
 
 export async function getStaticPaths() {
@@ -13,18 +12,14 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props;
-const { Content, remarkPluginFrontmatter } = await render(post);
+const { Content } = await render(post);
 const { title, description, pubDate, author, image } = post.data;
 
-const formattedDate = pubDate.toLocaleDateString("en", {
+const formattedDate = pubDate.toLocaleDateString("ko-KR", {
   year: "numeric",
   month: "long",
   day: "numeric",
 });
-
-const readingTime = remarkPluginFrontmatter?.minutesRead
-  ? `${Math.ceil(remarkPluginFrontmatter.minutesRead)} min reading time`
-  : "";
 
 const metadata = {
   title: title,
@@ -45,33 +40,32 @@ const metadata = {
       url: Astro.url.href,
     }}
   />
-  <section class="relative px-4 py-8 sm:px-6 lg:px-8 md:py-12">
-    <div class="relative mx-auto max-w-3xl">
-      <div class="reveal mb-10 text-center">
-        <p class="text-sm font-semibold tracking-wide text-primary uppercase">
-          {formattedDate} • {author}
-          {readingTime && ` • ${readingTime}`}
-        </p>
-        <h1
-          class="font-heading mt-2 text-3xl font-bold leading-tight tracking-tighter text-foreground sm:text-4xl md:text-5xl"
-        >
-          {title}
-        </h1>
-      </div>
 
-      {
-        image && (
-          <div class="reveal relative mb-8 h-96 w-full overflow-hidden rounded-xl shadow-lg">
-            <img src={image} alt={title} class="h-full w-full object-cover" />
-          </div>
-        )
-      }
+  <article class="max-w-3xl mx-auto px-6 sm:px-8 py-20 sm:py-32">
+    {/* 본문 상단 헤더 영역 */}
+    <header class="mb-16 text-center sm:text-left">
+      <time class="text-sm font-sans tracking-widest text-gray-400 dark:text-gray-500 uppercase mb-4 block">
+        {formattedDate}
+      </time>
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold font-sans tracking-tight text-gray-900 dark:text-gray-100 leading-tight mb-6">
+        {title}
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-400 font-serif leading-relaxed">
+        {description}
+      </p>
+    </header>
 
-      <div
-        class="reveal prose prose-lg dark:prose-invert mx-auto prose-headings:text-foreground prose-a:text-primary hover:prose-a:underline prose-p:text-muted-foreground prose-strong:text-foreground prose-li:text-muted-foreground prose-code:text-primary"
-      >
-        <Content />
-      </div>
+    {/* 구분선 */}
+    <div class="w-full h-px bg-gray-200 dark:bg-gray-800 mb-16"></div>
+
+    {/* 마크다운 렌더링 영역 (에세이 본문) */}
+    {/* prose 클래스를 사용하여 마크다운 요소들의 기본 스타일(여백, 폰트크기 등)을 제어합니다. */}
+    <div class="prose prose-lg dark:prose-invert max-w-none 
+                prose-p:font-serif prose-p:leading-loose prose-p:text-gray-800 dark:prose-p:text-gray-200 
+                prose-headings:font-sans prose-headings:font-bold prose-headings:tracking-tight 
+                prose-a:font-sans prose-a:text-gray-900 dark:prose-a:text-gray-100 prose-a:underline-offset-4
+                prose-blockquote:font-serif prose-blockquote:font-normal prose-blockquote:not-italic prose-blockquote:text-gray-500 prose-blockquote:border-l-gray-300">
+      <Content />
     </div>
-  </section>
+  </article>
 </BaseLayout>
