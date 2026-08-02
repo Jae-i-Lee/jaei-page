@@ -6,8 +6,8 @@ import ThemeToggle from "@/components/ui/ThemeToggle.astro";
 <nav class="fixed top-0 z-50 w-full border-b border-border bg-background md:bg-background/50 md:backdrop-blur">
   <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
     <div class="flex items-center gap-2">
-      <a href="/" class="text-lg font-bold tracking-tight text-foreground transition-colors hover:text-primary font-sans">
-        jaei.page
+      <a href="/" class="text-base sm:text-lg font-bold tracking-tight text-foreground transition-colors hover:text-primary font-sans">
+        {siteConfig.name}
       </a>
     </div>
     
@@ -28,6 +28,51 @@ import ThemeToggle from "@/components/ui/ThemeToggle.astro";
       <ThemeToggle />
     </div>
 
-    {/* 모바일 메뉴 버튼 생략 가능, 기존 코드 유지하셔도 무방합니다 */}
+    <!-- Mobile Menu Button -->
+    <div class="md:hidden flex items-center">
+      <button id="mobile-menu-button" type="button" class="p-2 rounded-md text-foreground hover:bg-white/10">
+        <svg id="menu-icon-closed" class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        <svg id="menu-icon-open" class="hidden h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <div class="ml-2">
+        <ThemeToggle />
+      </div>
+    </div>
+  </div>
+
+  <div class="hidden md:hidden" id="mobile-menu">
+    <div class="space-y-1 border-b border-border bg-background/90 px-2 pb-3 pt-2 sm:px-3">
+      {
+        siteConfig.navLinks.map((link) => (
+          <a href={link.href} class="block rounded-md px-3 py-2 text-base font-medium text-foreground transition-colors hover:bg-white/10 hover:text-primary">
+            {link.text}
+          </a>
+        ))
+      }
+    </div>
   </div>
 </nav>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const button = document.getElementById("mobile-menu-button");
+    const menu = document.getElementById("mobile-menu");
+    const iconClosed = document.getElementById("menu-icon-closed");
+    const iconOpen = document.getElementById("menu-icon-open");
+    
+    const newButton = button?.cloneNode(true);
+    if (newButton && button && button.parentNode) {
+      button.parentNode.replaceChild(newButton, button);
+    }
+    const finalButton = document.getElementById("mobile-menu-button");
+    finalButton?.addEventListener("click", () => {
+      menu?.classList.toggle("hidden");
+      iconClosed?.classList.toggle("hidden");
+      iconOpen?.classList.toggle("hidden");
+    });
+  });
+</script>
