@@ -34,7 +34,7 @@ const readingTime = remarkPluginFrontmatter?.minutesRead
         {post.data.author}
       </p>
       <a
-        href={`/philosophy/${post.id}`}
+        href={`/${post.collection}/${post.slug || post.id}`}
         class="mt-2 block before:absolute before:inset-0 before:z-10"
       >
         <p class="text-xl font-semibold text-foreground group-hover:underline">
