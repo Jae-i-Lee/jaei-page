@@ -28,6 +28,7 @@
     "@vercel/analytics": "^2.0.1",
     "astro": "^6.4.4",
     "astro-icon": "^1.1.5",
+    "remark-breaks": "^4.0.0",
     "remark-reading-time": "^2.1.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^5.9.3"
