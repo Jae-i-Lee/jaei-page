@@ -71,37 +71,77 @@ const categoryLabels: Record<string, string> = {
             <li class="group">
               <a
                 href={`/${post.collectionName}/${post.id}`}
-                class="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-6"
+                class="block"
               >
-                <time
-                  class="text-sm font-sans text-gray-400 dark:text-gray-500 shrink-0 sm:w-28 sm:pt-1"
+                <div
+                  class="
+                    grid grid-cols-[1fr_auto]
+                    sm:grid-cols-[7rem_minmax(0,1fr)_auto]
+                    items-baseline
+                    gap-x-4 sm:gap-x-6
+                    gap-y-2
+                  "
                 >
-                  {new Date(post.data.pubDate)
-                    .toLocaleDateString('ko-KR', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                    })
-                    .replace(/\.$/, '')}
-                </time>
-
-                <div class="space-y-2">
-                  <p
-                    class="text-xs font-medium text-blue-600 dark:text-blue-400 tracking-wide"
+                  <span
+                    class="
+                      col-start-1 row-start-1
+                      text-xs sm:text-sm
+                      font-medium font-sans
+                      text-blue-600 dark:text-blue-400
+                      tracking-wide
+                    "
                   >
                     {categoryLabels[post.collectionName]}
-                  </p>
+                  </span>
 
                   <h3
-                    class="text-lg sm:text-xl font-medium text-gray-800 dark:text-gray-200 group-hover:text-black dark:group-hover:text-white transition-colors duration-200 font-sans tracking-tight"
+                    class="
+                      col-span-2 row-start-2
+                      sm:col-span-1 sm:col-start-2 sm:row-start-1
+                      text-lg sm:text-xl
+                      font-medium font-sans
+                      text-gray-800 dark:text-gray-200
+                      group-hover:text-black
+                      dark:group-hover:text-white
+                      transition-colors duration-200
+                      tracking-tight
+                    "
                   >
                     {post.data.title}
                   </h3>
 
+                  <time
+                    class="
+                      col-start-2 row-start-1
+                      sm:col-start-3
+                      text-xs sm:text-sm
+                      font-sans
+                      text-gray-400 dark:text-gray-500
+                      whitespace-nowrap
+                    "
+                  >
+                    {new Date(post.data.pubDate)
+                      .toLocaleDateString('ko-KR', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                      })
+                      .replace(/\.$/, '')}
+                  </time>
+
                   {
                     post.data.description && (
                       <p
-                        class="text-gray-500 dark:text-gray-400 font-serif leading-relaxed text-sm sm:text-base line-clamp-2"
+                        class="
+                          col-span-2 row-start-3
+                          sm:col-start-2 sm:col-span-2 sm:row-start-2
+                          text-sm sm:text-base
+                          font-sans
+                          font-normal
+                          text-gray-500 dark:text-gray-400
+                          leading-relaxed
+                          line-clamp-2
+                        "
                       >
                         {post.data.description}
                       </p>
