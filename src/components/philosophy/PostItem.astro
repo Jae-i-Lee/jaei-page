@@ -12,6 +12,11 @@ const { remarkPluginFrontmatter } = await render(post);
 const readingTime = remarkPluginFrontmatter?.minutesRead
   ? `${Math.ceil(remarkPluginFrontmatter.minutesRead)} min read`
   : "";
+
+// 카테고리명과 같은 태그는 표시하지 않습니다.
+const visibleTags = (post.data.tags ?? []).filter(
+  (tag) => tag.toLowerCase() !== "philosophy",
+);
 ---
 
 <article
@@ -39,9 +44,13 @@ const readingTime = remarkPluginFrontmatter?.minutesRead
           {post.data.title}
         </p>
 
-        <p class="mt-3 text-base text-muted-foreground line-clamp-3">
-          {post.data.description}
-        </p>
+        {
+          post.data.description && (
+            <p class="mt-3 line-clamp-3 text-base text-muted-foreground">
+              {post.data.description}
+            </p>
+          )
+        }
       </a>
     </div>
 
@@ -64,9 +73,9 @@ const readingTime = remarkPluginFrontmatter?.minutesRead
     </div>
 
     {
-      post.data.tags && (
-        <div class="mt-4 relative z-20">
-          <Tags tags={post.data.tags} />
+      visibleTags.length > 0 && (
+        <div class="relative z-20 mt-4">
+          <Tags tags={visibleTags} />
         </div>
       )
     }
