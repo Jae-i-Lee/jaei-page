@@ -1,19 +1,13 @@
 ---
 import Tags from "@/components/ui/Tags.astro";
-import { type CollectionEntry, render } from "astro:content";
+import { type CollectionEntry } from "astro:content";
 
 export interface Props {
   post: CollectionEntry<"psychology">;
 }
 
 const { post } = Astro.props;
-const { remarkPluginFrontmatter } = await render(post);
 
-const readingTime = remarkPluginFrontmatter?.minutesRead
-  ? `${Math.ceil(remarkPluginFrontmatter.minutesRead)} min read`
-  : "";
-
-// 카테고리명과 같은 태그는 표시하지 않습니다.
 const visibleTags = (post.data.tags ?? []).filter(
   (tag) => tag.toLowerCase() !== "psychology",
 );
@@ -54,22 +48,20 @@ const visibleTags = (post.data.tags ?? []).filter(
       </a>
     </div>
 
-    <div class="mt-6 flex items-center">
-      <div class="flex space-x-1 text-sm text-muted-foreground">
-        <time datetime={post.data.pubDate.toISOString()}>
-          {
-            post.data.pubDate.toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              timeZone: "UTC",
-            })
-          }
-        </time>
-
-        {readingTime && <span aria-hidden="true">&bull;</span>}
-        {readingTime && <span>{readingTime}</span>}
-      </div>
+    <div class="mt-6">
+      <time
+        datetime={post.data.pubDate.toISOString()}
+        class="text-sm text-muted-foreground"
+      >
+        {
+          post.data.pubDate.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            timeZone: "UTC",
+          })
+        }
+      </time>
     </div>
 
     {
