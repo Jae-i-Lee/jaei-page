@@ -12,6 +12,11 @@ const { remarkPluginFrontmatter } = await render(post);
 const readingTime = remarkPluginFrontmatter?.minutesRead
   ? `${Math.ceil(remarkPluginFrontmatter.minutesRead)} min read`
   : "";
+
+const visibleTags =
+post.data.tags?.filter(
+  (tag) => tag.toLowerCase() !== post.collection.toLowerCase(),
+) ?? [];
 ---
 
 <article
@@ -70,11 +75,11 @@ const readingTime = remarkPluginFrontmatter?.minutesRead
     </div>
 
     {
-      post.data.tags && (
+      visibleTags.length > 0 && (
         <div class="mt-4 relative z-20">
-          <Tags tags={post.data.tags} />
+          <Tags tags={visibleTags} />
         </div>
       )
-    }
+}
   </div>
 </article>
