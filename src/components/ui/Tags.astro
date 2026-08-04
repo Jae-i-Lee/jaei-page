@@ -12,9 +12,7 @@ const { tags, class: className = "text-sm" } = Astro.props;
     <ul class:list={["flex flex-wrap gap-x-3 gap-y-1.5", className]}>
       {tags.map((tag) => (
         <li class="inline-block">
-          <span class="inline-block text-xs font-medium text-muted-foreground">
-            #{tag}
-          </span>
+          <span class="inline-block text-xs text-muted-foreground">#{tag}</span>
         </li>
       ))}
     </ul>

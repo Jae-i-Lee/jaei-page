@@ -26,7 +26,7 @@ const formattedDate = post.data.pubDate
   <div class="grid gap-3 sm:grid-cols-[7rem_minmax(0,1fr)] sm:gap-6">
     <time
       datetime={post.data.pubDate.toISOString()}
-      class="pt-1 text-xs font-medium text-muted-foreground sm:text-sm"
+      class="pt-1 text-xs text-muted-foreground sm:text-sm"
     >
       {formattedDate}
     </time>
@@ -34,7 +34,7 @@ const formattedDate = post.data.pubDate
     <div>
       <a href={`/${post.collection}/${post.id}`} class="group/link block">
         <h2
-          class="text-xl font-medium tracking-tight text-foreground transition-colors group-hover/link:text-primary sm:text-2xl"
+          class="text-xl font-semibold tracking-tight text-foreground transition-colors group-hover/link:text-primary sm:text-2xl"
         >
           {post.data.title}
         </h2>
