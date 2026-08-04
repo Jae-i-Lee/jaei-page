@@ -95,26 +95,61 @@ export async function getAnalyticsDashboard() {
   const day = 24 * 60 * 60 * 1000;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
 
-  const [total, todayCount, sevenDays, thirtyDays, paths, daily] =
-    await Promise.all([
-      countSince(0),
-      countSince(today.getTime()),
-      countSince(now - 7 * day),
-      countSince(now - 30 * day),
-      queryAnalytics("aggregate", {
-        since: now - 30 * day,
-        until: now,
-        by: ["requestPath"],
-        limit: 100,
-      }),
-      queryAnalytics("aggregate", {
-        since: now - 13 * day,
-        until: now,
-        by: ["day"],
-        limit: 30,
-      }),
-    ]);
+  const [
+    monthResult,
+    todayResult,
+    sevenDaysResult,
+    thirtyDaysResult,
+    pathsResult,
+    dailyResult,
+  ] = await Promise.allSettled([
+    countSince(monthStart.getTime()),
+    countSince(today.getTime()),
+    countSince(now - 7 * day),
+    countSince(now - 30 * day),
+    queryAnalytics("aggregate", {
+      since: now - 30 * day,
+      until: now,
+      by: ["requestPath"],
+      limit: 100,
+    }),
+    queryAnalytics("aggregate", {
+      since: now - 13 * day,
+      until: now,
+      by: ["day"],
+      limit: 30,
+    }),
+  ]);
+
+  const results = [
+    monthResult,
+    todayResult,
+    sevenDaysResult,
+    thirtyDaysResult,
+    pathsResult,
+    dailyResult,
+  ];
+  const failures = results.filter(
+    (result): result is PromiseRejectedResult => result.status === "rejected",
+  );
+  if (failures.length === results.length) {
+    throw failures[0]?.reason ?? new Error("Analytics requests failed.");
+  }
+
+  const month = monthResult.status === "fulfilled" ? monthResult.value : 0;
+  const todayCount = todayResult.status === "fulfilled" ? todayResult.value : 0;
+  const sevenDays =
+    sevenDaysResult.status === "fulfilled" ? sevenDaysResult.value : 0;
+  const thirtyDays =
+    thirtyDaysResult.status === "fulfilled" ? thirtyDaysResult.value : 0;
+  const paths =
+    pathsResult.status === "fulfilled" ? pathsResult.value : { data: [] };
+  const daily =
+    dailyResult.status === "fulfilled" ? dailyResult.value : { data: [] };
 
   const pathRows = Array.isArray(paths.data) ? paths.data : [];
   const topPosts = pathRows
@@ -144,7 +179,7 @@ export async function getAnalyticsDashboard() {
 
   return {
     totals: {
-      total,
+      month,
       today: todayCount,
       sevenDays,
       thirtyDays,
