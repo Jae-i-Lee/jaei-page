@@ -9,15 +9,10 @@ const { tags, class: className = "text-sm" } = Astro.props;
 
 {
   tags && Array.isArray(tags) && (
-    <ul class:list={["flex flex-wrap gap-2", className]}>
+    <ul class:list={["flex flex-wrap gap-x-3 gap-y-1.5", className]}>
       {tags.map((tag) => (
-        <li class="inline-block relative">
-          <a
-            href={`/blog/tags/${tag}`}
-            class="inline-block bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground px-3 py-1 rounded-full border border-border transition-colors duration-200"
-          >
-            #{tag}
-          </a>
+        <li class="inline-block">
+          <span class="inline-block text-xs text-muted-foreground">#{tag}</span>
         </li>
       ))}
     </ul>

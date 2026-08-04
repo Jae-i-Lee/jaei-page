@@ -1,38 +1,35 @@
 ---
-import Layout from '@/layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
+import Layout from "@/layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
 
-const psychologyPosts = (await getCollection('psychology')).map((post) => ({
+const psychologyPosts = (await getCollection("psychology")).map((post) => ({
   ...post,
-  collectionName: 'psychology',
+  collectionName: "psychology",
 }));
 
-const philosophyPosts = (await getCollection('philosophy')).map((post) => ({
+const philosophyPosts = (await getCollection("philosophy")).map((post) => ({
   ...post,
-  collectionName: 'philosophy',
+  collectionName: "philosophy",
 }));
 
-const reflectionsPosts = (await getCollection('reflections')).map((post) => ({
+const reflectionsPosts = (await getCollection("reflections")).map((post) => ({
   ...post,
-  collectionName: 'reflections',
+  collectionName: "reflections",
 }));
 
-const allPosts = [
-  ...psychologyPosts,
-  ...philosophyPosts,
-  ...reflectionsPosts,
-];
+const allPosts = [...psychologyPosts, ...philosophyPosts, ...reflectionsPosts];
 
 const sortedPosts = allPosts.sort(
   (a, b) =>
-    new Date(b.data.pubDate).valueOf() -
-    new Date(a.data.pubDate).valueOf(),
+    new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf(),
 );
 
+const recentPosts = sortedPosts.slice(0, 5);
+
 const categoryLabels: Record<string, string> = {
-  psychology: 'Psychology',
-  philosophy: 'Philosophy',
-  reflections: 'Reflections',
+  psychology: "Psychology",
+  philosophy: "Philosophy",
+  reflections: "Reflections",
 };
 ---
 
@@ -67,12 +64,9 @@ const categoryLabels: Record<string, string> = {
 
       <ul class="space-y-12">
         {
-          sortedPosts.map((post) => (
+          recentPosts.map((post) => (
             <li class="group">
-              <a
-                href={`/${post.collectionName}/${post.id}`}
-                class="block"
-              >
+              <a href={`/${post.collectionName}/${post.id}`} class="block">
                 <div
                   class="
                     grid grid-cols-[1fr_auto]
@@ -121,18 +115,17 @@ const categoryLabels: Record<string, string> = {
                     "
                   >
                     {new Date(post.data.pubDate)
-                      .toLocaleDateString('ko-KR', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
+                      .toLocaleDateString("ko-KR", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
                       })
-                      .replace(/\.$/, '')}
+                      .replace(/\.$/, "")}
                   </time>
 
-                  {
-                    post.data.description && (
-                      <p
-                        class="
+                  {post.data.description && (
+                    <p
+                      class="
                           col-span-2 row-start-3
                           sm:col-start-2 sm:col-span-2 sm:row-start-2
                           text-sm sm:text-base
@@ -142,11 +135,10 @@ const categoryLabels: Record<string, string> = {
                           leading-relaxed
                           line-clamp-2
                         "
-                      >
-                        {post.data.description}
-                      </p>
-                    )
-                  }
+                    >
+                      {post.data.description}
+                    </p>
+                  )}
                 </div>
               </a>
             </li>

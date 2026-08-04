@@ -27,31 +27,37 @@ export async function getStaticPaths() {
 const { tag, posts } = Astro.props;
 
 const metadata = {
-  title: `Posts tagged with '${tag}'`,
-  description: `Explore our articles about ${tag}.`,
+  title: `#${tag} · Psychology`,
+  description: `${tag} 태그가 붙은 심리학 글을 모았습니다.`,
 };
 ---
 
 <BaseLayout metadata={metadata}>
-  <section class="relative px-4 py-24 sm:px-6 lg:px-8 md:py-32">
-    <div class="relative mx-auto max-w-5xl">
+  <section class="px-6 py-16 sm:px-8 sm:py-24">
+    <div class="mx-auto max-w-3xl">
       <Headline
         tagline="Tag"
         title={`#${tag}`}
-        subtitle={`Showing ${posts.length} article${posts.length === 1 ? "" : "s"}.`}
+        subtitle={`${posts.length}개의 글`}
         classes={{
-          container: "mb-12 text-center",
+          container: "mb-12 border-l border-border pl-6 sm:pl-8",
           title:
-            "font-heading mb-4 text-4xl font-bold tracking-tight text-foreground md:text-6xl capitalized",
-          subtitle: "mx-auto max-w-3xl text-xl text-muted-foreground",
+            "mb-4 font-sans text-3xl font-bold tracking-tight text-foreground md:text-4xl",
+          subtitle: "text-base text-muted-foreground",
+          tagline: "px-0 py-0 text-xs uppercase tracking-[0.2em]",
         }}
+        titleAs="h1"
       />
 
-      <div class="mb-8 text-center">
-        <a href="/psychology" class="text-primary hover:underline">← Back to psychology</a>
+      <div class="mb-10">
+        <a
+          href="/psychology"
+          class="text-sm text-primary transition-opacity hover:opacity-70"
+          >← Psychology로 돌아가기</a
+        >
       </div>
 
-      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <div>
         {
           posts
             .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
