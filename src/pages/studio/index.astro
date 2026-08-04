@@ -146,17 +146,19 @@ const missingAll = [
           </div>
 
           <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {["오늘", "최근 7일", "최근 30일", "전체"].map((label, index) => (
-              <article class="rounded-2xl border border-border bg-card p-5">
-                <p class="text-xs text-muted-foreground">{label}</p>
-                <p
-                  class="metric-value mt-3 text-2xl font-semibold tracking-tight"
-                  data-index={index}
-                >
-                  —
-                </p>
-              </article>
-            ))}
+            {["오늘", "최근 7일", "최근 30일", "이번 달"].map(
+              (label, index) => (
+                <article class="rounded-2xl border border-border bg-card p-5">
+                  <p class="text-xs text-muted-foreground">{label}</p>
+                  <p
+                    class="metric-value mt-3 text-2xl font-semibold tracking-tight"
+                    data-index={index}
+                  >
+                    —
+                  </p>
+                </article>
+              ),
+            )}
           </div>
 
           <div class="mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
@@ -245,7 +247,7 @@ const missingAll = [
 <script>
   type DashboardAnalytics = {
     totals: {
-      total: number;
+      month: number;
       today: number;
       sevenDays: number;
       thirtyDays: number;
@@ -367,7 +369,7 @@ const missingAll = [
       data.totals.today,
       data.totals.sevenDays,
       data.totals.thirtyDays,
-      data.totals.total,
+      data.totals.month,
     ];
     document.querySelectorAll<HTMLElement>(".metric-value").forEach((item) => {
       const index = Number(item.dataset.index);
