@@ -14,52 +14,10 @@ const metadata = {
     <!-- 프로필 헤더 -->
     <header
       class="
-        flex flex-col items-center gap-6
-        sm:flex-row sm:items-center sm:gap-8
+        flex items-center justify-between gap-8
       "
     >
-      <figure class="shrink-0" aria-label="네로 캐릭터">
-        <div
-          class="
-            relative h-28 w-28 overflow-hidden rounded-full
-            border border-white/80
-            bg-gradient-to-br
-            from-blue-50/90 via-white/80 to-purple-50/90
-            shadow-[0_12px_32px_rgba(75,85,130,0.12)]
-            ring-1 ring-gray-200/70
-            dark:border-gray-700/60
-            dark:from-slate-900/80
-            dark:via-slate-900/60
-            dark:to-indigo-950/50
-            dark:ring-gray-700/70
-            sm:h-32 sm:w-32
-          "
-        >
-          <div
-            aria-hidden="true"
-            class="
-              absolute inset-x-4 bottom-1 h-12
-              rounded-full bg-indigo-200/30 blur-2xl
-              dark:bg-indigo-300/10
-            "
-          >
-          </div>
-
-          <img
-            src="/images/nero-about.png"
-            alt="검은 머리와 검은 옷을 입은 네로 캐릭터"
-            class="
-              pointer-events-none absolute inset-x-0 bottom-0
-              h-auto w-full scale-[1.08]
-              select-none object-contain
-            "
-            loading="eager"
-            decoding="async"
-          />
-        </div>
-      </figure>
-
-      <div class="text-center sm:text-left">
+      <div class="min-w-0">
         <h1
           class="
             mb-4 font-sans text-3xl font-bold
@@ -79,6 +37,37 @@ const metadata = {
           생각이 많고, 때로는 그 생각 속에 오래 머무는 사람입니다.
         </p>
       </div>
+
+      <figure class="shrink-0" aria-label="네로 캐릭터">
+        <div
+          class="
+            relative h-24 w-24 overflow-hidden rounded-full
+            border border-white/80
+            bg-gradient-to-br
+            from-blue-50/90 via-white/80 to-purple-50/90
+            shadow-[0_10px_28px_rgba(75,85,130,0.10)]
+            ring-1 ring-gray-200/70
+            dark:border-gray-700/60
+            dark:from-slate-900/80
+            dark:via-slate-900/60
+            dark:to-indigo-950/50
+            dark:ring-gray-700/70
+            sm:h-28 sm:w-28
+          "
+        >
+          <img
+            src="/images/nero-about.png"
+            alt="검은 머리와 검은 옷을 입은 네로 캐릭터"
+            class="
+              pointer-events-none absolute inset-x-0 bottom-0
+              h-auto w-full scale-[1.08]
+              select-none object-contain
+            "
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+      </figure>
     </header>
 
     <!-- 프로필과 본문의 경계 -->
