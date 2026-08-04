@@ -13,7 +13,7 @@ const {
   container = "max-w-xl",
   title: titleClass = "text-3xl md:text-4xl",
   subtitle: subtitleClass = "text-xl",
-  tagline: taglineClass = "",
+  tagline: taglineClass = "px-3 py-1",
 } = classes;
 
 const Title = titleAs as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
@@ -24,7 +24,7 @@ const Title = titleAs as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
     <div class={`mb-4 ${container}`}>
       {tagline && (
         <div
-          class={`inline-flex items-center gap-2 px-3 py-1 text-primary text-lg font-semibold ${taglineClass}`}
+          class={`inline-flex items-center gap-2 text-primary text-lg font-semibold ${taglineClass}`}
         >
           {tagline}
         </div>
