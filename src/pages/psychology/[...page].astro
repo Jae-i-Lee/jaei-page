@@ -20,32 +20,29 @@ const psychology = page.data;
 
 const metadata = {
   title: "Psychology",
-  description: "Latest news and updates from our team.",
+  description: "사람을 공부하고, 행복하게 살아갈 방법을 연구합니다.",
 };
 ---
 
 <BaseLayout metadata={metadata}>
-  <section class="relative px-4 py-8 sm:px-6 lg:px-8 md:py-12">
-    <div class="absolute inset-0 z-0">
-      <div
-        class="absolute inset-0 bg-linear-to-br from-blue-500/5 via-transparent to-pink-500/5"
-      >
-      </div>
-    </div>
-    <div class="relative mx-auto max-w-5xl">
+  <section class="px-6 py-16 sm:px-8 sm:py-24">
+    <div class="mx-auto max-w-3xl">
       <Headline
         tagline="Psychology"
         title="조금 덜 괴롭게"
         subtitle="사람을 공부하고, 행복하게 살아갈 방법을 연구합니다."
         classes={{
-          container: "reveal mb-12 text-center",
+          container: "reveal mb-16 border-l border-border pl-6 sm:pl-8",
           title:
-            "font-heading mb-4 text-2xl font-bold tracking-tight text-foreground md:text-4xl",
-          subtitle: "mx-auto max-w-3xl text-xl text-muted-foreground",
+            "mb-4 font-serif text-3xl font-normal tracking-tight text-foreground md:text-4xl",
+          subtitle:
+            "max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg",
+          tagline: "px-0 py-0 text-xs uppercase tracking-[0.2em]",
         }}
+        titleAs="h1"
       />
 
-      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <div>
         {psychology.map((post) => <PostItem post={post} />)}
       </div>
       <Pagination page={page} />

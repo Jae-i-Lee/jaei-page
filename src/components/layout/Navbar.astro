@@ -1,45 +1,94 @@
 ---
 import { siteConfig } from "@/config/site";
 import ThemeToggle from "@/components/ui/ThemeToggle.astro";
+
+const pathname = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const isCurrentPage = (href: string) =>
+  href === "/"
+    ? pathname === "/"
+    : pathname === href || pathname.startsWith(`${href}/`);
 ---
 
-<nav class="fixed top-0 z-50 w-full border-b border-border bg-background md:bg-background/50 md:backdrop-blur">
-  <!-- 부모 컨테이너에 relative 추가 -->
-  <div class="relative mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-    
-    <!-- 좌측: 로고 (z-10 추가) -->
+<nav
+  class="fixed top-0 z-50 w-full border-b border-border bg-background md:bg-background/50 md:backdrop-blur"
+>
+  <div
+    class="relative mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8"
+  >
     <div class="flex items-center gap-2 z-10">
-      <a href="/" class="text-base sm:text-lg font-bold tracking-tight text-foreground transition-colors hover:text-primary font-sans">
+      <a
+        href="/"
+        class="text-base sm:text-lg font-bold tracking-tight text-foreground transition-colors hover:text-primary font-sans"
+      >
         {siteConfig.name}
       </a>
     </div>
-    
-    <!-- 중앙: 데스크톱 메뉴 (절대 중앙 정렬) -->
-    <div class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center">
+
+    <div
+      class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center"
+    >
       <div class="flex items-baseline space-x-8">
         {
-          siteConfig.navLinks.map((link) => (
-            <a href={link.href} class="text-sm font-medium text-foreground transition-colors hover:text-primary">
-              {link.text}
-            </a>
-          ))
+          siteConfig.navLinks.map((link) => {
+            const isCurrent = isCurrentPage(link.href);
+
+            return (
+              <a
+                href={link.href}
+                aria-current={isCurrent ? "page" : undefined}
+                class:list={[
+                  "relative py-1 text-sm font-medium transition-colors after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-center after:bg-primary after:transition-transform",
+                  isCurrent
+                    ? "text-primary after:scale-x-100"
+                    : "text-foreground hover:text-primary after:scale-x-0",
+                ]}
+              >
+                {link.text}
+              </a>
+            );
+          })
         }
       </div>
     </div>
 
-    <!-- 우측: 테마 토글 (z-10 추가) -->
     <div class="hidden md:flex items-center gap-4 z-10">
       <ThemeToggle />
     </div>
 
-    <!-- 모바일 메뉴 버튼 (z-10 추가) -->
     <div class="md:hidden flex items-center z-10">
-      <button id="mobile-menu-button" type="button" class="p-2 rounded-md text-foreground hover:bg-white/10">
-        <svg id="menu-icon-closed" class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      <button
+        id="mobile-menu-button"
+        type="button"
+        aria-label="메뉴 열기"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        class="p-2 rounded-md text-foreground hover:bg-muted"
+      >
+        <svg
+          id="menu-icon-closed"
+          class="block h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
-        <svg id="menu-icon-open" class="hidden h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        <svg
+          id="menu-icon-open"
+          class="hidden h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"></path>
         </svg>
       </button>
       <div class="ml-2">
@@ -48,15 +97,27 @@ import ThemeToggle from "@/components/ui/ThemeToggle.astro";
     </div>
   </div>
 
-  <!-- 모바일 메뉴 드롭다운 -->
   <div class="hidden md:hidden" id="mobile-menu">
-    <div class="space-y-1 border-b border-border bg-background/90 px-2 pb-3 pt-2 sm:px-3">
+    <div
+      class="space-y-1 border-b border-border bg-background/95 px-2 pb-3 pt-2 backdrop-blur sm:px-3"
+    >
       {
-        siteConfig.navLinks.map((link) => (
-          <a href={link.href} class="block rounded-md px-3 py-2 text-base font-medium text-foreground transition-colors hover:bg-white/10 hover:text-primary">
-            {link.text}
-          </a>
-        ))
+        siteConfig.navLinks.map((link) => {
+          const isCurrent = isCurrentPage(link.href);
+
+          return (
+            <a
+              href={link.href}
+              aria-current={isCurrent ? "page" : undefined}
+              class:list={[
+                "block rounded-md px-3 py-2 text-base font-medium transition-colors hover:bg-muted hover:text-primary",
+                isCurrent ? "text-primary" : "text-foreground",
+              ]}
+            >
+              {link.text}
+            </a>
+          );
+        })
       }
     </div>
   </div>
@@ -64,20 +125,33 @@ import ThemeToggle from "@/components/ui/ThemeToggle.astro";
 
 <script>
   document.addEventListener("astro:page-load", () => {
-    const button = document.getElementById("mobile-menu-button");
+    const button = document.getElementById(
+      "mobile-menu-button",
+    ) as HTMLButtonElement | null;
     const menu = document.getElementById("mobile-menu");
-    const iconClosed = document.getElementById("menu-icon-closed");
-    const iconOpen = document.getElementById("menu-icon-open");
-    
-    const newButton = button?.cloneNode(true);
-    if (newButton && button && button.parentNode) {
-      button.parentNode.replaceChild(newButton, button);
+    const iconClosed = button?.querySelector("#menu-icon-closed");
+    const iconOpen = button?.querySelector("#menu-icon-open");
+
+    if (!button || !menu || button.dataset.menuReady === "true") {
+      return;
     }
-    const finalButton = document.getElementById("mobile-menu-button");
-    finalButton?.addEventListener("click", () => {
-      menu?.classList.toggle("hidden");
-      iconClosed?.classList.toggle("hidden");
-      iconOpen?.classList.toggle("hidden");
+
+    button.dataset.menuReady = "true";
+
+    const setMenuOpen = (isOpen: boolean) => {
+      menu.classList.toggle("hidden", !isOpen);
+      iconClosed?.classList.toggle("hidden", isOpen);
+      iconOpen?.classList.toggle("hidden", !isOpen);
+      button.setAttribute("aria-expanded", String(isOpen));
+      button.setAttribute("aria-label", isOpen ? "메뉴 닫기" : "메뉴 열기");
+    };
+
+    button.addEventListener("click", () => {
+      setMenuOpen(button.getAttribute("aria-expanded") !== "true");
+    });
+
+    menu.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => setMenuOpen(false));
     });
   });
 </script>
