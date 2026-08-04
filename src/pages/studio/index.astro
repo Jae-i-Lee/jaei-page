@@ -1,0 +1,531 @@
+---
+import StudioLayout from "@/layouts/StudioLayout.astro";
+import { getStudioSession } from "@/lib/studio/auth";
+import { getStudioReadiness } from "@/lib/studio/config";
+
+export const prerender = false;
+
+Astro.response.headers.set("Cache-Control", "private, no-store, max-age=0");
+Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+
+const session = await getStudioSession(Astro.cookies);
+const readiness = getStudioReadiness();
+const authMessage = Astro.url.searchParams.get("auth");
+const missingAll = [
+  ...readiness.authMissing,
+  ...readiness.repositoryMissing,
+  ...readiness.analyticsMissing,
+];
+---
+
+<StudioLayout title="작업실" {session}>
+  {
+    !readiness.authReady ? (
+      <section class="mx-auto max-w-2xl py-10 sm:py-16">
+        <p class="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+          First light
+        </p>
+        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
+          작업실을 열 준비가 거의 끝났어요.
+        </h1>
+        <p class="mt-5 max-w-xl leading-relaxed text-muted-foreground">
+          화면과 기능은 준비되어 있습니다. 아래 환경변수를 Vercel에 등록하면
+          재이 님의 GitHub 계정으로만 문이 열립니다.
+        </p>
+
+        <div class="mt-10 rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <h2 class="font-semibold">필요한 설정</h2>
+          <ul class="mt-5 space-y-3">
+            {missingAll.map((item) => (
+              <li class="flex items-start gap-3 text-sm text-muted-foreground">
+                <span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                <code class="break-all text-foreground">{item}</code>
+              </li>
+            ))}
+          </ul>
+          <p class="mt-6 border-t border-border pt-5 text-sm leading-relaxed text-muted-foreground">
+            자세한 값과 권한 범위는 저장소의
+            <code class="text-foreground">docs/JAEI_STUDIO_SETUP.md</code>에
+            정리되어 있습니다.
+          </p>
+        </div>
+      </section>
+    ) : !session ? (
+      <section class="mx-auto grid max-w-4xl gap-10 py-10 sm:grid-cols-[1.1fr_0.9fr] sm:items-center sm:py-20">
+        <div>
+          <p class="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+            Jaei Studio
+          </p>
+          <h1 class="text-3xl font-bold leading-tight tracking-tight sm:text-5xl">
+            글이 세상에 닿기 전,
+            <br />
+            잠시 머무는 방.
+          </h1>
+          <p class="mt-6 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
+            통계를 살피고, 새 글을 쓰고, 미리보기에서 천천히 읽은 뒤 공개할 수
+            있습니다.
+          </p>
+          {authMessage === "cancelled" && (
+            <p class="mt-5 rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+              GitHub 로그인이 취소되었습니다. 준비되었을 때 다시 들어오면 돼요.
+            </p>
+          )}
+        </div>
+
+        <div class="rounded-3xl border border-border bg-card p-7 shadow-sm sm:p-9">
+          <p class="text-sm font-medium">Private access</p>
+          <p class="mt-2 text-sm leading-relaxed text-muted-foreground">
+            허용된 GitHub 계정 하나만 접근할 수 있으며, 저장소와 통계 토큰은
+            브라우저에 전달되지 않습니다.
+          </p>
+          <a
+            href="/api/studio/auth/login"
+            class="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-5 py-3.5 text-sm font-semibold text-background transition-opacity hover:opacity-85"
+          >
+            <span aria-hidden="true">●</span>
+            GitHub로 들어가기
+          </a>
+        </div>
+      </section>
+    ) : (
+      <div
+        id="studio-dashboard"
+        data-analytics-ready={String(readiness.analyticsReady)}
+        data-repository-ready={String(readiness.repositoryReady)}
+      >
+        <section class="flex flex-col gap-6 border-b border-border pb-10 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p class="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+              Dashboard
+            </p>
+            <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
+              안녕하세요, 재이 님.
+            </h1>
+            <p class="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+              오늘의 흔적을 살피고, 다음 문장을 이어가세요.
+            </p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              id="refresh-dashboard"
+              type="button"
+              class="rounded-xl border border-border px-4 py-3 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              새로고침
+            </button>
+            <a
+              href="/studio/editor"
+              class="rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-85"
+            >
+              새 글 쓰기
+            </a>
+          </div>
+        </section>
+
+        <div
+          id="dashboard-notice"
+          class="mt-6 hidden rounded-xl border px-4 py-3 text-sm"
+          role="status"
+        />
+
+        <section class="mt-10" aria-labelledby="traffic-title">
+          <div class="mb-5 flex items-baseline justify-between gap-4">
+            <div>
+              <h2 id="traffic-title" class="text-lg font-semibold">
+                방문 흔적
+              </h2>
+              <p class="mt-1 text-xs text-muted-foreground">
+                Vercel Web Analytics · 페이지 조회 기준
+              </p>
+            </div>
+            {!readiness.analyticsReady && (
+              <span class="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                설정 대기
+              </span>
+            )}
+          </div>
+
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {["오늘", "최근 7일", "최근 30일", "전체"].map((label, index) => (
+              <article class="rounded-2xl border border-border bg-card p-5">
+                <p class="text-xs text-muted-foreground">{label}</p>
+                <p
+                  class="metric-value mt-3 text-2xl font-semibold tracking-tight"
+                  data-index={index}
+                >
+                  —
+                </p>
+              </article>
+            ))}
+          </div>
+
+          <div class="mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+            <article class="rounded-2xl border border-border bg-card p-5 sm:p-6">
+              <div class="flex items-center justify-between gap-4">
+                <h3 class="text-sm font-semibold">최근 14일</h3>
+                <span class="text-xs text-muted-foreground">일별 조회</span>
+              </div>
+              <div
+                id="trend-bars"
+                class="mt-7 flex h-36 items-end gap-1.5"
+                aria-label="최근 14일 조회수 그래프"
+              >
+                {Array.from({ length: 14 }).map(() => (
+                  <span
+                    class="min-h-1 flex-1 animate-pulse rounded-t bg-muted"
+                    style="height: 35%"
+                  />
+                ))}
+              </div>
+            </article>
+
+            <article class="rounded-2xl border border-border bg-card p-5 sm:p-6">
+              <h3 class="text-sm font-semibold">많이 읽힌 글</h3>
+              <ol id="top-posts" class="mt-5 space-y-3">
+                <li class="text-sm text-muted-foreground">
+                  통계를 불러오는 중입니다…
+                </li>
+              </ol>
+            </article>
+          </div>
+        </section>
+
+        <section class="mt-12 grid gap-5 lg:grid-cols-2" aria-label="글 관리">
+          <article class="rounded-2xl border border-border bg-card p-5 sm:p-6">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-semibold">발행된 글</h2>
+                <p id="post-count" class="mt-1 text-xs text-muted-foreground">
+                  불러오는 중
+                </p>
+              </div>
+              <a
+                href="/studio/editor"
+                class="text-sm font-medium text-primary hover:underline"
+              >
+                새 글
+              </a>
+            </div>
+            <ul id="published-posts" class="mt-6 divide-y divide-border">
+              <li class="py-4 text-sm text-muted-foreground">
+                글 목록을 불러오는 중입니다…
+              </li>
+            </ul>
+          </article>
+
+          <article class="rounded-2xl border border-border bg-card p-5 sm:p-6">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-semibold">미리보기 대기</h2>
+                <p id="draft-count" class="mt-1 text-xs text-muted-foreground">
+                  Draft PR
+                </p>
+              </div>
+              <a
+                href={`https://github.com/Jae-i-Lee/jaei-page/pulls`}
+                target="_blank"
+                rel="noreferrer"
+                class="text-sm font-medium text-primary hover:underline"
+              >
+                GitHub ↗
+              </a>
+            </div>
+            <ul id="studio-drafts" class="mt-6 divide-y divide-border">
+              <li class="py-4 text-sm text-muted-foreground">
+                미리보기를 불러오는 중입니다…
+              </li>
+            </ul>
+          </article>
+        </section>
+      </div>
+    )
+  }
+</StudioLayout>
+
+<script>
+  type DashboardAnalytics = {
+    totals: {
+      total: number;
+      today: number;
+      sevenDays: number;
+      thirtyDays: number;
+    };
+    topPosts: Array<{ path: string; views: number }>;
+    trend: Array<{ date: string; views: number }>;
+  };
+  type PostSummary = {
+    title: string;
+    pubDate: string;
+    category: string;
+    path: string;
+    url: string;
+  };
+  type DraftSummary = {
+    number: number;
+    title: string;
+    url: string;
+    createdAt: string;
+    draft: boolean;
+  };
+
+  const dashboard = document.querySelector<HTMLElement>("#studio-dashboard");
+
+  function formatNumber(value: number): string {
+    return new Intl.NumberFormat("ko-KR").format(value || 0);
+  }
+
+  function showNotice(message: string, tone: "success" | "error" = "error") {
+    const notice = document.querySelector<HTMLElement>("#dashboard-notice");
+    if (!notice) return;
+    notice.textContent = message;
+    notice.className =
+      tone === "success"
+        ? "mt-6 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200"
+        : "mt-6 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200";
+  }
+
+  async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+    const response = await fetch(url, {
+      ...init,
+      headers: { "Content-Type": "application/json", ...init?.headers },
+    });
+    const payload = (await response.json()) as T & { error?: string };
+    if (!response.ok)
+      throw new Error(payload.error || "데이터를 불러오지 못했습니다.");
+    return payload;
+  }
+
+  function renderTrend(rows: DashboardAnalytics["trend"]) {
+    const container = document.querySelector<HTMLElement>("#trend-bars");
+    if (!container) return;
+    container.replaceChildren();
+    if (!rows.length) {
+      const empty = document.createElement("p");
+      empty.className = "self-center text-sm text-muted-foreground";
+      empty.textContent = "아직 표시할 조회 기록이 없습니다.";
+      container.append(empty);
+      return;
+    }
+    const max = Math.max(...rows.map((row) => row.views), 1);
+    for (const row of rows) {
+      const wrapper = document.createElement("span");
+      wrapper.className = "group relative flex h-full flex-1 items-end";
+      wrapper.title = `${row.date}: ${formatNumber(row.views)}회`;
+      const bar = document.createElement("span");
+      bar.className =
+        "block min-h-1 w-full rounded-t bg-primary/70 transition-colors group-hover:bg-primary";
+      bar.style.height = `${Math.max((row.views / max) * 100, 3)}%`;
+      wrapper.append(bar);
+      container.append(wrapper);
+    }
+  }
+
+  function renderTopPosts(rows: DashboardAnalytics["topPosts"]) {
+    const list = document.querySelector<HTMLOListElement>("#top-posts");
+    if (!list) return;
+    list.replaceChildren();
+    if (!rows.length) {
+      const empty = document.createElement("li");
+      empty.className = "text-sm text-muted-foreground";
+      empty.textContent = "최근 30일간 집계된 글 조회가 없습니다.";
+      list.append(empty);
+      return;
+    }
+    rows.slice(0, 5).forEach((row, index) => {
+      const item = document.createElement("li");
+      item.className = "flex items-center gap-3 text-sm";
+      const rank = document.createElement("span");
+      rank.className = "w-5 shrink-0 text-xs text-muted-foreground";
+      rank.textContent = String(index + 1).padStart(2, "0");
+      const link = document.createElement("a");
+      link.href = row.path;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      link.className = "min-w-0 flex-1 truncate hover:text-primary";
+      link.textContent = decodeURIComponent(
+        row.path.split("/").filter(Boolean).at(-1) || row.path,
+      );
+      const views = document.createElement("span");
+      views.className = "text-xs text-muted-foreground";
+      views.textContent = `${formatNumber(row.views)}회`;
+      item.append(rank, link, views);
+      list.append(item);
+    });
+  }
+
+  async function loadAnalytics() {
+    if (!dashboard || dashboard.dataset.analyticsReady !== "true") {
+      document
+        .querySelectorAll<HTMLElement>(".metric-value")
+        .forEach((item) => (item.textContent = "설정 대기"));
+      renderTrend([]);
+      renderTopPosts([]);
+      return;
+    }
+    const data = await fetchJson<DashboardAnalytics>("/api/studio/analytics");
+    const metrics = [
+      data.totals.today,
+      data.totals.sevenDays,
+      data.totals.thirtyDays,
+      data.totals.total,
+    ];
+    document.querySelectorAll<HTMLElement>(".metric-value").forEach((item) => {
+      const index = Number(item.dataset.index);
+      item.textContent = `${formatNumber(metrics[index])}회`;
+    });
+    renderTrend(data.trend);
+    renderTopPosts(data.topPosts);
+  }
+
+  function renderPosts(posts: PostSummary[]) {
+    const list = document.querySelector<HTMLUListElement>("#published-posts");
+    const count = document.querySelector<HTMLElement>("#post-count");
+    if (!list || !count) return;
+    list.replaceChildren();
+    count.textContent = `${formatNumber(posts.length)}개의 글`;
+    if (!posts.length) {
+      const empty = document.createElement("li");
+      empty.className = "py-5 text-sm text-muted-foreground";
+      empty.textContent = "아직 발행된 글이 없습니다.";
+      list.append(empty);
+      return;
+    }
+    posts.slice(0, 8).forEach((post) => {
+      const item = document.createElement("li");
+      item.className = "flex items-center gap-4 py-4";
+      const info = document.createElement("div");
+      info.className = "min-w-0 flex-1";
+      const title = document.createElement("p");
+      title.className = "truncate text-sm font-medium";
+      title.textContent = post.title;
+      const meta = document.createElement("p");
+      meta.className = "mt-1 text-xs text-muted-foreground";
+      meta.textContent = `${post.category} · ${post.pubDate}`;
+      info.append(title, meta);
+      const edit = document.createElement("a");
+      edit.href = `/studio/editor?path=${encodeURIComponent(post.path)}`;
+      edit.className =
+        "rounded-lg border border-border px-3 py-2 text-xs font-medium hover:bg-muted";
+      edit.textContent = "수정";
+      item.append(info, edit);
+      list.append(item);
+    });
+  }
+
+  async function publishDraft(pullNumber: number, button: HTMLButtonElement) {
+    if (
+      !window.confirm(
+        "미리보기를 충분히 확인했나요? 이 글을 실제 블로그에 공개합니다.",
+      )
+    )
+      return;
+    button.disabled = true;
+    button.textContent = "공개 중…";
+    try {
+      await fetchJson("/api/studio/publish", {
+        method: "POST",
+        body: JSON.stringify({ pullNumber }),
+      });
+      showNotice(
+        "공개를 시작했습니다. Vercel이 실제 블로그를 새로 배포하고 있어요.",
+        "success",
+      );
+      await loadDrafts();
+    } catch (error) {
+      showNotice(
+        error instanceof Error ? error.message : "공개하지 못했습니다.",
+      );
+      button.disabled = false;
+      button.textContent = "공개하기";
+    }
+  }
+
+  function renderDrafts(drafts: DraftSummary[]) {
+    const list = document.querySelector<HTMLUListElement>("#studio-drafts");
+    const count = document.querySelector<HTMLElement>("#draft-count");
+    if (!list || !count) return;
+    list.replaceChildren();
+    count.textContent = drafts.length
+      ? `${drafts.length}개의 미리보기`
+      : "Draft PR";
+    if (!drafts.length) {
+      const empty = document.createElement("li");
+      empty.className = "py-5 text-sm leading-relaxed text-muted-foreground";
+      empty.textContent =
+        "확인을 기다리는 글이 없습니다. 새 문장을 시작해도 좋은 때예요.";
+      list.append(empty);
+      return;
+    }
+    drafts.forEach((draft) => {
+      const item = document.createElement("li");
+      item.className = "py-4";
+      const row = document.createElement("div");
+      row.className = "flex items-start gap-4";
+      const info = document.createElement("div");
+      info.className = "min-w-0 flex-1";
+      const link = document.createElement("a");
+      link.href = draft.url;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      link.className = "block truncate text-sm font-medium hover:text-primary";
+      link.textContent = draft.title.replace(/^\[Studio\]\s*/, "");
+      const meta = document.createElement("p");
+      meta.className = "mt-1 text-xs text-muted-foreground";
+      meta.textContent = `PR #${draft.number} · ${new Date(draft.createdAt).toLocaleDateString("ko-KR")}`;
+      info.append(link, meta);
+      const publish = document.createElement("button");
+      publish.type = "button";
+      publish.className =
+        "rounded-lg bg-foreground px-3 py-2 text-xs font-semibold text-background disabled:opacity-50";
+      publish.textContent = "공개하기";
+      publish.addEventListener("click", () =>
+        publishDraft(draft.number, publish),
+      );
+      row.append(info, publish);
+      item.append(row);
+      list.append(item);
+    });
+  }
+
+  async function loadPosts() {
+    if (!dashboard || dashboard.dataset.repositoryReady !== "true") {
+      renderPosts([]);
+      const count = document.querySelector<HTMLElement>("#post-count");
+      if (count) count.textContent = "GitHub 토큰 설정 대기";
+      return;
+    }
+    const data = await fetchJson<{ posts: PostSummary[] }>("/api/studio/posts");
+    renderPosts(data.posts);
+  }
+
+  async function loadDrafts() {
+    if (!dashboard || dashboard.dataset.repositoryReady !== "true") {
+      renderDrafts([]);
+      const count = document.querySelector<HTMLElement>("#draft-count");
+      if (count) count.textContent = "GitHub 토큰 설정 대기";
+      return;
+    }
+    const data = await fetchJson<{ drafts: DraftSummary[] }>(
+      "/api/studio/drafts",
+    );
+    renderDrafts(data.drafts);
+  }
+
+  async function loadDashboard() {
+    if (!dashboard) return;
+    try {
+      await Promise.all([loadAnalytics(), loadPosts(), loadDrafts()]);
+    } catch (error) {
+      showNotice(
+        error instanceof Error
+          ? error.message
+          : "대시보드를 불러오지 못했습니다.",
+      );
+    }
+  }
+
+  document
+    .querySelector("#refresh-dashboard")
+    ?.addEventListener("click", loadDashboard);
+  loadDashboard();
+</script>

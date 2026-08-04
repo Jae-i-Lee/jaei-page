@@ -5,10 +5,18 @@ import tailwindcss from "@tailwindcss/vite";
 import icon from "astro-icon";
 import remarkReadingTime from "remark-reading-time";
 import remarkBreaks from "remark-breaks";
+import vercel from "@astrojs/vercel";
 
 export default defineConfig({
-  site: "https://astrostarterpro.com/",
-  integrations: [sitemap(), icon(), mdx()],
+  site: "https://jaei.page/",
+  adapter: vercel(),
+  integrations: [
+    sitemap({
+      filter: (page) => !new URL(page).pathname.startsWith("/studio"),
+    }),
+    icon(),
+    mdx(),
+  ],
 
   markdown: {
     remarkPlugins: [
