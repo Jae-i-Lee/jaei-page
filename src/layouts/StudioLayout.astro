@@ -1,0 +1,113 @@
+---
+import type { StudioSession } from "@/lib/studio/auth";
+import "@/styles/global.css";
+
+interface Props {
+  title: string;
+  session?: StudioSession | null;
+}
+
+const { title, session } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ko" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="same-origin" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title} | Jaei Studio</title>
+    <slot name="head" />
+    <script is:inline>
+      const studioTheme = () => {
+        const saved = localStorage.getItem("theme");
+        const theme =
+          saved ||
+          (window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      };
+      studioTheme();
+    </script>
+  </head>
+  <body class="min-h-screen bg-background text-foreground antialiased">
+    <a
+      href="#studio-content"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-white"
+    >
+      본문으로 이동
+    </a>
+
+    <header class="border-b border-border bg-background/95 backdrop-blur">
+      <div
+        class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8"
+      >
+        <a href="/studio" class="group flex items-center gap-3">
+          <span
+            class="grid h-8 w-8 place-items-center rounded-full border border-border bg-muted text-sm font-semibold text-primary"
+            aria-hidden="true"
+          >
+            J
+          </span>
+          <span>
+            <span class="block text-sm font-semibold tracking-tight"
+              >Jaei Studio</span
+            >
+            <span
+              class="block text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
+              >Private workspace</span
+            >
+          </span>
+        </a>
+
+        <nav class="flex items-center gap-2 sm:gap-4" aria-label="Studio 메뉴">
+          <a
+            href="/"
+            target="_blank"
+            rel="noreferrer"
+            class="rounded-full px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:text-sm"
+          >
+            블로그 보기 <span aria-hidden="true">↗</span>
+          </a>
+          {
+            session && (
+              <div class="flex items-center gap-2">
+                <img
+                  src={session.avatarUrl}
+                  alt=""
+                  class="h-7 w-7 rounded-full border border-border"
+                  width="28"
+                  height="28"
+                />
+                <form method="post" action="/api/studio/auth/logout">
+                  <button
+                    type="submit"
+                    class="rounded-full px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    로그아웃
+                  </button>
+                </form>
+              </div>
+            )
+          }
+        </nav>
+      </div>
+    </header>
+
+    <main
+      id="studio-content"
+      class="mx-auto w-full max-w-6xl px-5 py-10 sm:px-8 sm:py-14"
+    >
+      <slot />
+    </main>
+
+    <footer class="mx-auto mt-auto w-full max-w-6xl px-5 pb-10 pt-5 sm:px-8">
+      <p class="text-xs leading-relaxed text-muted-foreground">
+        조용히 쓰고, 충분히 살펴본 뒤 세상에 내보냅니다.
+      </p>
+    </footer>
+  </body>
+</html>

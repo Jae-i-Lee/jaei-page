@@ -4,6 +4,8 @@ import { siteConfig } from "@/config/site";
 const robotsTxt = `
 User-agent: *
 Allow: /
+Disallow: /studio
+Disallow: /api/studio
 
 Sitemap: ${new URL("sitemap-index.xml", siteConfig.url).href}
 `.trim();

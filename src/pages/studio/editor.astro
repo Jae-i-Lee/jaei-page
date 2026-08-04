@@ -1,0 +1,502 @@
+---
+import StudioLayout from "@/layouts/StudioLayout.astro";
+import { getStudioSession } from "@/lib/studio/auth";
+import { getStudioReadiness } from "@/lib/studio/config";
+
+export const prerender = false;
+
+Astro.response.headers.set("Cache-Control", "private, no-store, max-age=0");
+Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+
+const session = await getStudioSession(Astro.cookies);
+if (!session) return Astro.redirect("/studio", 303);
+
+const sourcePath = Astro.url.searchParams.get("path") || "";
+const readiness = getStudioReadiness();
+---
+
+<StudioLayout title={sourcePath ? "글 수정" : "새 글"} {session}>
+  <div class="mx-auto max-w-4xl">
+    <div class="mb-8">
+      <a
+        href="/studio"
+        class="text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        ← 작업실로 돌아가기
+      </a>
+    </div>
+
+    <header class="border-b border-border pb-8">
+      <p
+        class="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary"
+      >
+        {sourcePath ? "Revise" : "New writing"}
+      </p>
+      <h1
+        id="editor-heading"
+        class="text-3xl font-bold tracking-tight sm:text-4xl"
+      >
+        {sourcePath ? "글을 불러오는 중입니다…" : "새로운 글"}
+      </h1>
+      <p
+        class="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base"
+      >
+        저장하면 곧바로 공개되지 않습니다. Draft PR과 Vercel Preview가 먼저
+        만들어져요.
+      </p>
+    </header>
+
+    {
+      !readiness.repositoryReady && (
+        <div class="mt-6 rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+          GitHub 저장소 토큰이 아직 설정되지 않아 미리보기를 만들 수 없습니다.
+        </div>
+      )
+    }
+
+    <div
+      id="editor-error"
+      class="mt-6 hidden rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200"
+      role="alert"
+    >
+    </div>
+
+    <form
+      id="post-editor"
+      class="mt-10 space-y-10"
+      data-source-path={sourcePath}
+      data-repository-ready={String(readiness.repositoryReady)}
+    >
+      <fieldset
+        id="editor-fields"
+        class="space-y-7"
+        disabled={Boolean(sourcePath)}
+      >
+        <legend class="sr-only">글 정보</legend>
+
+        <div>
+          <label for="title" class="mb-2 block text-sm font-semibold"
+            >제목</label
+          >
+          <input
+            id="title"
+            name="title"
+            type="text"
+            maxlength="120"
+            required
+            placeholder="이 글이 품고 있는 한 문장"
+            class="w-full rounded-xl border border-border bg-background px-4 py-3 text-base outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-primary"
+          />
+        </div>
+
+        <div>
+          <label for="description" class="mb-2 block text-sm font-semibold"
+            >소개</label
+          >
+          <textarea
+            id="description"
+            name="description"
+            rows="3"
+            maxlength="240"
+            required
+            placeholder="목록과 검색 결과에 보일 짧은 소개"
+            class="w-full resize-y rounded-xl border border-border bg-background px-4 py-3 text-sm leading-relaxed outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-primary"
+          ></textarea>
+          <p class="mt-2 text-xs text-muted-foreground">
+            240자 이내로, 글의 결만 살짝 보여주세요.
+          </p>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label for="category" class="mb-2 block text-sm font-semibold"
+              >카테고리</label
+            >
+            <select
+              id="category"
+              name="category"
+              class="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+            >
+              <option value="reflections">Reflections</option>
+              <option value="psychology">Psychology</option>
+              <option value="philosophy">Philosophy</option>
+            </select>
+          </div>
+          <div>
+            <label for="pubDate" class="mb-2 block text-sm font-semibold"
+              >발행일</label
+            >
+            <input
+              id="pubDate"
+              name="pubDate"
+              type="date"
+              required
+              class="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="slug" class="mb-2 block text-sm font-semibold"
+            >URL 이름</label
+          >
+          <div
+            class="flex items-stretch rounded-xl border border-border bg-background focus-within:border-primary"
+          >
+            <span
+              id="slug-prefix"
+              class="flex items-center border-r border-border px-3 text-xs text-muted-foreground sm:px-4"
+            >
+              /reflections/
+            </span>
+            <input
+              id="slug"
+              name="slug"
+              type="text"
+              maxlength="80"
+              required
+              placeholder="글-제목"
+              class="min-w-0 flex-1 rounded-r-xl bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60"
+            />
+          </div>
+          <p
+            id="path-lock-note"
+            class="mt-2 hidden text-xs text-muted-foreground"
+          >
+            기존 링크를 지키기 위해 수정할 때는 카테고리와 URL 이름이
+            고정됩니다.
+          </p>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label for="tags" class="mb-2 block text-sm font-semibold"
+              >태그</label
+            >
+            <input
+              id="tags"
+              name="tags"
+              type="text"
+              placeholder="사색, 밤, 선택"
+              class="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60 focus:border-primary"
+            />
+            <p class="mt-2 text-xs text-muted-foreground">
+              쉼표로 나누어 입력합니다.
+            </p>
+          </div>
+          <div>
+            <label for="image" class="mb-2 block text-sm font-semibold"
+              >대표 이미지 <span class="font-normal text-muted-foreground"
+                >선택</span
+              ></label
+            >
+            <input
+              id="image"
+              name="image"
+              type="text"
+              placeholder="/images/example.webp"
+              class="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none placeholder:text-muted-foreground/60 focus:border-primary"
+            />
+          </div>
+        </div>
+
+        <div>
+          <div class="mb-2 flex items-end justify-between gap-4">
+            <label for="body" class="block text-sm font-semibold">본문</label>
+            <span id="body-count" class="text-xs text-muted-foreground"
+              >0자</span
+            >
+          </div>
+          <textarea
+            id="body"
+            name="body"
+            rows="24"
+            maxlength="120000"
+            required
+            spellcheck="true"
+            placeholder={`마크다운으로 글을 씁니다.\n\n문단 사이에는 빈 줄을 하나 두세요.`}
+            class="min-h-[32rem] w-full resize-y rounded-2xl border border-border bg-background px-5 py-5 font-mono text-sm leading-7 outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-primary"
+          ></textarea>
+          <div
+            class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground"
+          >
+            <span><code>## 제목</code></span>
+            <span><code>**굵게**</code></span>
+            <span><code>*기울임*</code></span>
+            <span><code>&gt; 인용</code></span>
+            <span><code>[링크](주소)</code></span>
+          </div>
+        </div>
+      </fieldset>
+
+      <div
+        class="sticky bottom-4 z-10 flex flex-col gap-3 rounded-2xl border border-border bg-background/95 p-4 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between"
+      >
+        <p
+          id="editor-status"
+          class="text-xs leading-relaxed text-muted-foreground"
+        >
+          저장하면 GitHub Draft PR이 만들어집니다.
+        </p>
+        <div class="flex gap-2">
+          <a
+            href="/studio"
+            class="rounded-xl border border-border px-4 py-3 text-sm font-medium hover:bg-muted"
+            >취소</a
+          >
+          <button
+            id="create-preview"
+            type="submit"
+            disabled={!readiness.repositoryReady}
+            class="rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            미리보기 생성
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <section
+      id="preview-result"
+      class="mt-10 hidden rounded-2xl border border-emerald-300 bg-emerald-50 p-6 text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100"
+      aria-live="polite"
+    >
+      <p class="text-xs font-semibold uppercase tracking-[0.18em]">
+        Preview requested
+      </p>
+      <h2 class="mt-3 text-xl font-semibold">미리보기를 만들기 시작했어요.</h2>
+      <p class="mt-3 text-sm leading-relaxed opacity-80">
+        GitHub PR에서 Vercel 검사가 끝나면 Preview 링크가 나타납니다. 충분히
+        읽어본 뒤 작업실에서 공개하세요.
+      </p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a
+          id="preview-pr-link"
+          href="/studio"
+          target="_blank"
+          rel="noreferrer"
+          class="rounded-xl bg-emerald-950 px-4 py-3 text-sm font-semibold text-white dark:bg-emerald-100 dark:text-emerald-950"
+        >
+          Draft PR 열기 ↗
+        </a>
+        <a
+          href="/studio"
+          class="rounded-xl border border-emerald-400/60 px-4 py-3 text-sm font-semibold"
+          >작업실로 돌아가기</a
+        >
+      </div>
+    </section>
+  </div>
+</StudioLayout>
+
+<script>
+  type StudioPost = {
+    title: string;
+    description: string;
+    pubDate: string;
+    category: string;
+    tags: string[];
+    slug: string;
+    body: string;
+    image?: string;
+    sourcePath?: string;
+  };
+
+  const form = document.querySelector<HTMLFormElement>("#post-editor");
+  const fieldset =
+    document.querySelector<HTMLFieldSetElement>("#editor-fields");
+  const titleInput = document.querySelector<HTMLInputElement>("#title");
+  const descriptionInput =
+    document.querySelector<HTMLTextAreaElement>("#description");
+  const categoryInput = document.querySelector<HTMLSelectElement>("#category");
+  const dateInput = document.querySelector<HTMLInputElement>("#pubDate");
+  const slugInput = document.querySelector<HTMLInputElement>("#slug");
+  const tagsInput = document.querySelector<HTMLInputElement>("#tags");
+  const imageInput = document.querySelector<HTMLInputElement>("#image");
+  const bodyInput = document.querySelector<HTMLTextAreaElement>("#body");
+  const submitButton =
+    document.querySelector<HTMLButtonElement>("#create-preview");
+  const sourcePath = form?.dataset.sourcePath || "";
+  let slugWasEdited = Boolean(sourcePath);
+
+  function normalizeSlug(value: string): string {
+    return value
+      .normalize("NFKC")
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^\p{L}\p{N}_-]/gu, "")
+      .replace(/-{2,}/g, "-")
+      .replace(/^[-_.]+|[-_.]+$/g, "")
+      .slice(0, 80);
+  }
+
+  function updateSlugPrefix() {
+    const prefix = document.querySelector<HTMLElement>("#slug-prefix");
+    if (prefix && categoryInput)
+      prefix.textContent = `/${categoryInput.value}/`;
+  }
+
+  function updateBodyCount() {
+    const count = document.querySelector<HTMLElement>("#body-count");
+    if (count && bodyInput)
+      count.textContent = `${bodyInput.value.length.toLocaleString("ko-KR")}자`;
+  }
+
+  function showError(message: string) {
+    const container = document.querySelector<HTMLElement>("#editor-error");
+    if (!container) return;
+    container.textContent = message;
+    container.classList.remove("hidden");
+    container.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function clearError() {
+    document.querySelector("#editor-error")?.classList.add("hidden");
+  }
+
+  function setForm(post: StudioPost) {
+    if (
+      !titleInput ||
+      !descriptionInput ||
+      !categoryInput ||
+      !dateInput ||
+      !slugInput ||
+      !tagsInput ||
+      !imageInput ||
+      !bodyInput
+    )
+      return;
+    titleInput.value = post.title;
+    descriptionInput.value = post.description;
+    categoryInput.value = post.category;
+    dateInput.value = post.pubDate;
+    slugInput.value = post.slug;
+    tagsInput.value = post.tags.join(", ");
+    imageInput.value = post.image || "";
+    bodyInput.value = post.body;
+    updateSlugPrefix();
+    updateBodyCount();
+    const heading = document.querySelector<HTMLElement>("#editor-heading");
+    if (heading) heading.textContent = post.title;
+    fieldset?.removeAttribute("disabled");
+    categoryInput.disabled = true;
+    slugInput.disabled = true;
+    document.querySelector("#path-lock-note")?.classList.remove("hidden");
+  }
+
+  async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+    const response = await fetch(url, {
+      ...init,
+      headers: { "Content-Type": "application/json", ...init?.headers },
+    });
+    const payload = (await response.json()) as T & { error?: string };
+    if (!response.ok)
+      throw new Error(payload.error || "요청을 완료하지 못했습니다.");
+    return payload;
+  }
+
+  async function loadPost() {
+    if (!sourcePath) {
+      if (dateInput) dateInput.value = new Date().toLocaleDateString("en-CA");
+      fieldset?.removeAttribute("disabled");
+      return;
+    }
+    try {
+      const data = await fetchJson<{ post: StudioPost }>(
+        `/api/studio/post?path=${encodeURIComponent(sourcePath)}`,
+      );
+      setForm(data.post);
+    } catch (error) {
+      showError(
+        error instanceof Error ? error.message : "글을 불러오지 못했습니다.",
+      );
+    }
+  }
+
+  titleInput?.addEventListener("input", () => {
+    if (!slugWasEdited && slugInput)
+      slugInput.value = normalizeSlug(titleInput.value);
+  });
+  slugInput?.addEventListener("input", () => {
+    slugWasEdited = true;
+    slugInput.value = normalizeSlug(slugInput.value);
+  });
+  categoryInput?.addEventListener("change", updateSlugPrefix);
+  bodyInput?.addEventListener("input", updateBodyCount);
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearError();
+    if (
+      !form.dataset.repositoryReady ||
+      form.dataset.repositoryReady !== "true"
+    ) {
+      showError("GitHub 저장소 토큰을 먼저 설정해 주세요.");
+      return;
+    }
+    if (
+      !titleInput ||
+      !descriptionInput ||
+      !categoryInput ||
+      !dateInput ||
+      !slugInput ||
+      !tagsInput ||
+      !imageInput ||
+      !bodyInput ||
+      !submitButton
+    )
+      return;
+
+    const post: StudioPost = {
+      title: titleInput.value,
+      description: descriptionInput.value,
+      category: categoryInput.value,
+      pubDate: dateInput.value,
+      slug: slugInput.value,
+      tags: tagsInput.value
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+      image: imageInput.value,
+      body: bodyInput.value,
+      ...(sourcePath ? { sourcePath } : {}),
+    };
+
+    submitButton.disabled = true;
+    submitButton.textContent = "생성 중…";
+    const status = document.querySelector<HTMLElement>("#editor-status");
+    if (status)
+      status.textContent = "GitHub에 안전한 미리보기 브랜치를 만들고 있습니다.";
+
+    try {
+      const data = await fetchJson<{ preview: { url: string } }>(
+        "/api/studio/preview",
+        {
+          method: "POST",
+          body: JSON.stringify(post),
+        },
+      );
+      const result = document.querySelector<HTMLElement>("#preview-result");
+      const link =
+        document.querySelector<HTMLAnchorElement>("#preview-pr-link");
+      if (link) link.href = data.preview.url;
+      result?.classList.remove("hidden");
+      result?.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (status) status.textContent = "미리보기 요청이 완료되었습니다.";
+      submitButton.textContent = "생성 완료";
+    } catch (error) {
+      showError(
+        error instanceof Error
+          ? error.message
+          : "미리보기를 만들지 못했습니다.",
+      );
+      submitButton.disabled = false;
+      submitButton.textContent = "미리보기 생성";
+      if (status) status.textContent = "내용은 이 화면에 그대로 남아 있습니다.";
+    }
+  });
+
+  updateSlugPrefix();
+  updateBodyCount();
+  loadPost();
+</script>
