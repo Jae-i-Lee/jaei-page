@@ -51,8 +51,12 @@ async function queryAnalytics(
     filter: "environment eq 'production'",
   });
   if (vercelTeamId) query.set("teamId", vercelTeamId);
-  if (options.since) query.set("since", String(options.since));
-  if (options.until) query.set("until", String(options.until));
+  if (options.since !== undefined) {
+    query.set("since", String(options.since));
+  }
+  if (options.until !== undefined) {
+    query.set("until", String(options.until));
+  }
   if (options.limit) query.set("limit", String(options.limit));
   for (const dimension of options.by || []) query.append("by", dimension);
 
@@ -76,9 +80,9 @@ async function queryAnalytics(
   return (await response.json()) as AnalyticsResponse;
 }
 
-async function countSince(since?: number): Promise<number> {
+async function countSince(since: number): Promise<number> {
   const response = await queryAnalytics("count", {
-    ...(since ? { since } : {}),
+    since,
     until: Date.now(),
   });
   return response.data && !Array.isArray(response.data)
@@ -94,7 +98,7 @@ export async function getAnalyticsDashboard() {
 
   const [total, todayCount, sevenDays, thirtyDays, paths, daily] =
     await Promise.all([
-      countSince(),
+      countSince(0),
       countSince(today.getTime()),
       countSince(now - 7 * day),
       countSince(now - 30 * day),
