@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { requireStudioSession } from "@/lib/studio/auth";
-import { createPreviewPullRequest } from "@/lib/studio/github";
+import { saveStudioDraft } from "@/lib/studio/database";
 import {
   assertSameOrigin,
   errorResponse,
@@ -16,7 +16,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
     assertSameOrigin(request);
     await requireStudioSession(cookies);
     const post = validatePostInput(await readJson(request));
-    return json({ preview: await createPreviewPullRequest(post) }, 201);
+    return json({ draft: await saveStudioDraft(post) }, 201);
   } catch (error) {
     return errorResponse(error);
   }

@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { requireStudioSession } from "@/lib/studio/auth";
-import { listStudioDrafts } from "@/lib/studio/github";
+import { listStudioDrafts } from "@/lib/studio/database";
 import { errorResponse, json } from "@/lib/studio/http";
 
 export const prerender = false;

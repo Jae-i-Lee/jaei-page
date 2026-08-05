@@ -1,0 +1,50 @@
+---
+import Tags from "@/components/ui/Tags.astro";
+import type { BlogPost } from "@/lib/blog";
+
+export interface Props {
+  post: BlogPost;
+}
+
+const { post } = Astro.props;
+const visibleTags = post.tags.filter(
+  (tag) => tag.toLowerCase() !== post.category,
+);
+const formattedDate = post.pubDate
+  .toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "UTC",
+  })
+  .replace(/\.$/, "");
+---
+
+<article class="reveal border-b border-border py-8 first:pt-0 last:border-b-0">
+  <div class="grid gap-3 sm:grid-cols-[7rem_minmax(0,1fr)] sm:gap-6">
+    <time
+      datetime={post.pubDate.toISOString()}
+      class="pt-1 text-xs text-muted-foreground sm:text-sm"
+    >
+      {formattedDate}
+    </time>
+
+    <div>
+      <a href={`/${post.category}/${post.slug}`} class="group/link block">
+        <h2
+          class="text-xl font-semibold tracking-tight text-foreground transition-colors group-hover/link:text-primary sm:text-2xl"
+        >
+          {post.title}
+        </h2>
+        {
+          post.description && (
+            <p class="mt-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
+              {post.description}
+            </p>
+          )
+        }
+      </a>
+      {visibleTags.length > 0 && <Tags tags={visibleTags} class="mt-4" />}
+    </div>
+  </div>
+</article>

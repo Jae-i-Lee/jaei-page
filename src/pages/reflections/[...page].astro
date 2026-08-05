@@ -1,18 +1,13 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { getCollection } from "astro:content";
+import { listPublishedPosts } from "@/lib/blog";
 import Headline from "@/components/ui/Headline.astro";
 import Pagination from "@/components/ui/Pagination.astro";
-import PostItem from "@/components/reflections/PostItem.astro";
+import PostItem from "@/components/blog/DatabasePostItem.astro";
 import type { GetStaticPathsOptions } from "astro";
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
-  const reflectionsEntries = await getCollection("reflections");
-  const sortedPosts = reflectionsEntries
-    .filter((post) => post.data && post.data.pubDate)
-    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-
-  return paginate(sortedPosts, { pageSize: 6 });
+  return paginate(await listPublishedPosts("reflections"), { pageSize: 6 });
 }
 
 const { page } = Astro.props;

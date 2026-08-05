@@ -13,7 +13,8 @@ const readiness = getStudioReadiness();
 const authMessage = Astro.url.searchParams.get("auth");
 const missingAll = [
   ...readiness.authMissing,
-  ...readiness.repositoryMissing,
+  ...readiness.databaseMissing,
+  ...readiness.publishingMissing,
   ...readiness.analyticsMissing,
 ];
 ---
@@ -75,7 +76,7 @@ const missingAll = [
         <div class="rounded-3xl border border-border bg-card p-7 shadow-sm sm:p-9">
           <p class="text-sm font-medium">Private access</p>
           <p class="mt-2 text-sm leading-relaxed text-muted-foreground">
-            허용된 GitHub 계정 하나만 접근할 수 있으며, 저장소와 통계 토큰은
+            허용된 GitHub 계정 하나만 접근할 수 있으며, DB와 통계 연결 정보는
             브라우저에 전달되지 않습니다.
           </p>
           <a
@@ -91,7 +92,7 @@ const missingAll = [
       <div
         id="studio-dashboard"
         data-analytics-ready={String(readiness.analyticsReady)}
-        data-repository-ready={String(readiness.repositoryReady)}
+        data-database-ready={String(readiness.databaseReady)}
       >
         <section class="flex flex-col gap-6 border-b border-border pb-10 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -218,18 +219,16 @@ const missingAll = [
           <article class="rounded-2xl border border-border bg-card p-5 sm:p-6">
             <div class="flex items-center justify-between gap-4">
               <div>
-                <h2 class="text-lg font-semibold">미리보기 대기</h2>
+                <h2 class="text-lg font-semibold">임시저장</h2>
                 <p id="draft-count" class="mt-1 text-xs text-muted-foreground">
-                  Draft PR
+                  저장된 초안
                 </p>
               </div>
               <a
-                href={`https://github.com/Jae-i-Lee/jaei-page/pulls`}
-                target="_blank"
-                rel="noreferrer"
+                href="/studio/editor"
                 class="text-sm font-medium text-primary hover:underline"
               >
-                GitHub ↗
+                새 글
               </a>
             </div>
             <ul id="studio-drafts" class="mt-6 divide-y divide-border">
@@ -263,11 +262,10 @@ const missingAll = [
     url: string;
   };
   type DraftSummary = {
-    number: number;
+    id: string;
     title: string;
     url: string;
     createdAt: string;
-    draft: boolean;
   };
 
   const dashboard = document.querySelector<HTMLElement>("#studio-dashboard");
@@ -414,7 +412,7 @@ const missingAll = [
     });
   }
 
-  async function publishDraft(pullNumber: number, button: HTMLButtonElement) {
+  async function publishDraft(draftId: string, button: HTMLButtonElement) {
     if (
       !window.confirm(
         "미리보기를 충분히 확인했나요? 이 글을 실제 블로그에 공개합니다.",
@@ -424,15 +422,19 @@ const missingAll = [
     button.disabled = true;
     button.textContent = "공개 중…";
     try {
-      await fetchJson("/api/studio/publish", {
+      const data = await fetchJson<{
+        result: { deploymentTriggered: boolean };
+      }>("/api/studio/publish", {
         method: "POST",
-        body: JSON.stringify({ pullNumber }),
+        body: JSON.stringify({ draftId }),
       });
       showNotice(
-        "공개를 시작했습니다. Vercel이 실제 블로그를 새로 배포하고 있어요.",
+        data.result.deploymentTriggered
+          ? "DB에 공개 상태로 저장했습니다. Vercel이 실제 블로그를 새로 배포하고 있어요."
+          : "DB에는 공개했지만 자동 배포 Hook이 설정되지 않았습니다. Vercel에서 한 번 배포해 주세요.",
         "success",
       );
-      await loadDrafts();
+      await Promise.all([loadPosts(), loadDrafts()]);
     } catch (error) {
       showNotice(
         error instanceof Error ? error.message : "공개하지 못했습니다.",
@@ -448,8 +450,8 @@ const missingAll = [
     if (!list || !count) return;
     list.replaceChildren();
     count.textContent = drafts.length
-      ? `${drafts.length}개의 미리보기`
-      : "Draft PR";
+      ? `${drafts.length}개의 초안`
+      : "저장된 초안";
     if (!drafts.length) {
       const empty = document.createElement("li");
       empty.className = "py-5 text-sm leading-relaxed text-muted-foreground";
@@ -467,22 +469,18 @@ const missingAll = [
       info.className = "min-w-0 flex-1";
       const link = document.createElement("a");
       link.href = draft.url;
-      link.target = "_blank";
-      link.rel = "noreferrer";
       link.className = "block truncate text-sm font-medium hover:text-primary";
-      link.textContent = draft.title.replace(/^\[Studio\]\s*/, "");
+      link.textContent = draft.title;
       const meta = document.createElement("p");
       meta.className = "mt-1 text-xs text-muted-foreground";
-      meta.textContent = `PR #${draft.number} · ${new Date(draft.createdAt).toLocaleDateString("ko-KR")}`;
+      meta.textContent = `마지막 저장 · ${new Date(draft.createdAt).toLocaleDateString("ko-KR")}`;
       info.append(link, meta);
       const publish = document.createElement("button");
       publish.type = "button";
       publish.className =
         "rounded-lg bg-foreground px-3 py-2 text-xs font-semibold text-background disabled:opacity-50";
       publish.textContent = "공개하기";
-      publish.addEventListener("click", () =>
-        publishDraft(draft.number, publish),
-      );
+      publish.addEventListener("click", () => publishDraft(draft.id, publish));
       row.append(info, publish);
       item.append(row);
       list.append(item);
@@ -490,10 +488,10 @@ const missingAll = [
   }
 
   async function loadPosts() {
-    if (!dashboard || dashboard.dataset.repositoryReady !== "true") {
+    if (!dashboard || dashboard.dataset.databaseReady !== "true") {
       renderPosts([]);
       const count = document.querySelector<HTMLElement>("#post-count");
-      if (count) count.textContent = "GitHub 토큰 설정 대기";
+      if (count) count.textContent = "Supabase 설정 대기";
       return;
     }
     const data = await fetchJson<{ posts: PostSummary[] }>("/api/studio/posts");
@@ -501,10 +499,10 @@ const missingAll = [
   }
 
   async function loadDrafts() {
-    if (!dashboard || dashboard.dataset.repositoryReady !== "true") {
+    if (!dashboard || dashboard.dataset.databaseReady !== "true") {
       renderDrafts([]);
       const count = document.querySelector<HTMLElement>("#draft-count");
-      if (count) count.textContent = "GitHub 토큰 설정 대기";
+      if (count) count.textContent = "Supabase 설정 대기";
       return;
     }
     const data = await fetchJson<{ drafts: DraftSummary[] }>(

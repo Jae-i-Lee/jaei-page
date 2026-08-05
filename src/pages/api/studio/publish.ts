@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { requireStudioSession } from "@/lib/studio/auth";
-import { publishStudioDraft } from "@/lib/studio/github";
+import { publishStudioDraft } from "@/lib/studio/database";
 import {
   assertSameOrigin,
   errorResponse,
@@ -15,12 +15,12 @@ export const POST: APIRoute = async ({ cookies, request }) => {
   try {
     assertSameOrigin(request);
     await requireStudioSession(cookies);
-    const body = await readJson<{ pullNumber?: unknown }>(request);
-    const pullNumber = Number(body.pullNumber);
-    if (!Number.isInteger(pullNumber)) {
-      throw new StudioHttpError(400, "PR 번호가 올바르지 않습니다.");
+    const body = await readJson<{ draftId?: unknown }>(request);
+    const draftId = typeof body.draftId === "string" ? body.draftId : "";
+    if (!draftId) {
+      throw new StudioHttpError(400, "임시저장 글 ID가 필요합니다.");
     }
-    return json({ result: await publishStudioDraft(pullNumber) });
+    return json({ result: await publishStudioDraft(draftId) });
   } catch (error) {
     return errorResponse(error);
   }

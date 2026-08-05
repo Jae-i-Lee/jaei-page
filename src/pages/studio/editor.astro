@@ -41,15 +41,14 @@ const readiness = getStudioReadiness();
       <p
         class="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base"
       >
-        저장하면 곧바로 공개되지 않습니다. Draft PR과 Vercel Preview가 먼저
-        만들어져요.
+        DB에 임시저장한 뒤 검토하거나, 준비되었다면 바로 공개할 수 있습니다.
       </p>
     </header>
 
     {
-      !readiness.repositoryReady && (
+      !readiness.databaseReady && (
         <div class="mt-6 rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-          GitHub 저장소 토큰이 아직 설정되지 않아 미리보기를 만들 수 없습니다.
+          Supabase 연결 정보가 아직 설정되지 않아 글을 저장할 수 없습니다.
         </div>
       )
     }
@@ -65,7 +64,7 @@ const readiness = getStudioReadiness();
       id="post-editor"
       class="mt-10 space-y-10"
       data-source-path={sourcePath}
-      data-repository-ready={String(readiness.repositoryReady)}
+      data-database-ready={String(readiness.databaseReady)}
     >
       <fieldset
         id="editor-fields"
@@ -236,7 +235,7 @@ const readiness = getStudioReadiness();
           id="editor-status"
           class="text-xs leading-relaxed text-muted-foreground"
         >
-          저장하면 GitHub Draft PR이 만들어집니다.
+          저장 내용은 DB의 비공개 초안에 보관됩니다.
         </p>
         <div class="flex gap-2">
           <a
@@ -245,12 +244,20 @@ const readiness = getStudioReadiness();
             >취소</a
           >
           <button
-            id="create-preview"
+            id="save-draft"
             type="submit"
-            disabled={!readiness.repositoryReady}
+            disabled={!readiness.databaseReady}
             class="rounded-xl bg-foreground px-5 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            미리보기 생성
+            임시저장
+          </button>
+          <button
+            id="publish-now"
+            type="button"
+            disabled={!readiness.databaseReady}
+            class="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            바로 공개
           </button>
         </div>
       </div>
@@ -262,22 +269,22 @@ const readiness = getStudioReadiness();
       aria-live="polite"
     >
       <p class="text-xs font-semibold uppercase tracking-[0.18em]">
-        Preview requested
+        Draft saved
       </p>
-      <h2 class="mt-3 text-xl font-semibold">미리보기를 만들기 시작했어요.</h2>
+      <h2 id="result-heading" class="mt-3 text-xl font-semibold">
+        초안을 저장했어요.
+      </h2>
       <p class="mt-3 text-sm leading-relaxed opacity-80">
-        GitHub PR에서 Vercel 검사가 끝나면 Preview 링크가 나타납니다. 충분히
-        읽어본 뒤 작업실에서 공개하세요.
+        GitHub PR은 만들어지지 않습니다. 내용을 더 다듬거나 작업실에서 공개할 수
+        있습니다.
       </p>
       <div class="mt-6 flex flex-wrap gap-3">
         <a
-          id="preview-pr-link"
+          id="saved-draft-link"
           href="/studio"
-          target="_blank"
-          rel="noreferrer"
           class="rounded-xl bg-emerald-950 px-4 py-3 text-sm font-semibold text-white dark:bg-emerald-100 dark:text-emerald-950"
         >
-          Draft PR 열기 ↗
+          저장된 초안 열기
         </a>
         <a
           href="/studio"
@@ -314,8 +321,9 @@ const readiness = getStudioReadiness();
   const tagsInput = document.querySelector<HTMLInputElement>("#tags");
   const imageInput = document.querySelector<HTMLInputElement>("#image");
   const bodyInput = document.querySelector<HTMLTextAreaElement>("#body");
-  const submitButton =
-    document.querySelector<HTMLButtonElement>("#create-preview");
+  const saveButton = document.querySelector<HTMLButtonElement>("#save-draft");
+  const publishButton =
+    document.querySelector<HTMLButtonElement>("#publish-now");
   const sourcePath = form?.dataset.sourcePath || "";
   let slugWasEdited = Boolean(sourcePath);
 
@@ -424,16 +432,7 @@ const readiness = getStudioReadiness();
   categoryInput?.addEventListener("change", updateSlugPrefix);
   bodyInput?.addEventListener("input", updateBodyCount);
 
-  form?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    clearError();
-    if (
-      !form.dataset.repositoryReady ||
-      form.dataset.repositoryReady !== "true"
-    ) {
-      showError("GitHub 저장소 토큰을 먼저 설정해 주세요.");
-      return;
-    }
+  function collectPost(): StudioPost | null {
     if (
       !titleInput ||
       !descriptionInput ||
@@ -442,12 +441,11 @@ const readiness = getStudioReadiness();
       !slugInput ||
       !tagsInput ||
       !imageInput ||
-      !bodyInput ||
-      !submitButton
+      !bodyInput
     )
-      return;
+      return null;
 
-    const post: StudioPost = {
+    return {
       title: titleInput.value,
       description: descriptionInput.value,
       category: categoryInput.value,
@@ -461,38 +459,110 @@ const readiness = getStudioReadiness();
       body: bodyInput.value,
       ...(sourcePath ? { sourcePath } : {}),
     };
+  }
 
-    submitButton.disabled = true;
-    submitButton.textContent = "생성 중…";
+  async function saveDraft(): Promise<{ id: string; url: string }> {
+    if (form?.dataset.databaseReady !== "true") {
+      throw new Error("Supabase 연결 정보를 먼저 설정해 주세요.");
+    }
+    if (!form?.reportValidity()) throw new Error("필수 항목을 확인해 주세요.");
+    const post = collectPost();
+    if (!post) throw new Error("글 입력 화면을 확인하지 못했습니다.");
+
+    const data = await fetchJson<{ draft: { id: string; url: string } }>(
+      "/api/studio/preview",
+      {
+        method: "POST",
+        body: JSON.stringify(post),
+      },
+    );
+    return data.draft;
+  }
+
+  function setBusy(busy: boolean, action: "save" | "publish") {
+    if (saveButton) {
+      saveButton.disabled = busy;
+      saveButton.textContent =
+        busy && action === "save" ? "저장 중…" : "임시저장";
+    }
+    if (publishButton) {
+      publishButton.disabled = busy;
+      publishButton.textContent =
+        busy && action === "publish" ? "공개 중…" : "바로 공개";
+    }
+  }
+
+  function showSavedResult(
+    draft: { id: string; url: string },
+    published = false,
+  ) {
+    const result = document.querySelector<HTMLElement>("#preview-result");
+    const heading = document.querySelector<HTMLElement>("#result-heading");
+    const link = document.querySelector<HTMLAnchorElement>("#saved-draft-link");
+    if (heading)
+      heading.textContent = published
+        ? "공개를 시작했어요."
+        : "초안을 저장했어요.";
+    if (link) {
+      link.href = published ? "/studio" : draft.url;
+      link.textContent = published ? "작업실로 돌아가기" : "저장된 초안 열기";
+    }
+    result?.classList.remove("hidden");
+    result?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearError();
     const status = document.querySelector<HTMLElement>("#editor-status");
-    if (status)
-      status.textContent = "GitHub에 안전한 미리보기 브랜치를 만들고 있습니다.";
+    setBusy(true, "save");
+    if (status) status.textContent = "DB에 비공개 초안을 저장하고 있습니다.";
 
     try {
-      const data = await fetchJson<{ preview: { url: string } }>(
-        "/api/studio/preview",
-        {
-          method: "POST",
-          body: JSON.stringify(post),
-        },
-      );
-      const result = document.querySelector<HTMLElement>("#preview-result");
-      const link =
-        document.querySelector<HTMLAnchorElement>("#preview-pr-link");
-      if (link) link.href = data.preview.url;
-      result?.classList.remove("hidden");
-      result?.scrollIntoView({ behavior: "smooth", block: "center" });
-      if (status) status.textContent = "미리보기 요청이 완료되었습니다.";
-      submitButton.textContent = "생성 완료";
+      const draft = await saveDraft();
+      showSavedResult(draft);
+      if (status) status.textContent = "DB에 안전하게 임시저장했습니다.";
     } catch (error) {
       showError(
-        error instanceof Error
-          ? error.message
-          : "미리보기를 만들지 못했습니다.",
+        error instanceof Error ? error.message : "초안을 저장하지 못했습니다.",
       );
-      submitButton.disabled = false;
-      submitButton.textContent = "미리보기 생성";
       if (status) status.textContent = "내용은 이 화면에 그대로 남아 있습니다.";
+    } finally {
+      setBusy(false, "save");
+    }
+  });
+
+  publishButton?.addEventListener("click", async () => {
+    clearError();
+    if (
+      !window.confirm(
+        "이 글을 공개할까요? 공개 후 블로그가 자동으로 새로 배포됩니다.",
+      )
+    )
+      return;
+    const status = document.querySelector<HTMLElement>("#editor-status");
+    setBusy(true, "publish");
+    if (status) status.textContent = "최신 내용을 저장하고 공개하고 있습니다.";
+    try {
+      const draft = await saveDraft();
+      const data = await fetchJson<{
+        result: { deploymentTriggered: boolean };
+      }>("/api/studio/publish", {
+        method: "POST",
+        body: JSON.stringify({ draftId: draft.id }),
+      });
+      showSavedResult(draft, true);
+      if (status)
+        status.textContent = data.result.deploymentTriggered
+          ? "공개 완료. 새 배포가 끝나면 블로그에 반영됩니다."
+          : "DB에는 공개했습니다. 자동 배포 Hook 설정 후 Vercel에서 한 번 배포해 주세요.";
+    } catch (error) {
+      showError(
+        error instanceof Error ? error.message : "글을 공개하지 못했습니다.",
+      );
+      if (status) status.textContent = "내용은 이 화면에 그대로 남아 있습니다.";
+    } finally {
+      setBusy(false, "publish");
     }
   });
 
