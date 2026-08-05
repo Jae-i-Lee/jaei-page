@@ -37,19 +37,19 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 1. Supabase 프로젝트를 만듭니다.
 2. SQL Editor에서 `supabase/migrations/202608050001_create_blog_content.sql`을 실행합니다.
-3. Project Settings의 API 항목에서 Project URL과 service role key를 확인합니다.
+3. Project Settings의 API Keys에서 Project URL을 확인하고 `sb_secret_`으로 시작하는 Secret key를 새로 만듭니다.
 4. Vercel에 다음 환경변수를 등록합니다.
 
 ```text
 SUPABASE_URL
-SUPABASE_SERVICE_ROLE_KEY
+SUPABASE_SECRET_KEY
 ```
 
-service role key는 서버에서만 사용합니다. 이 프로젝트는 모든 콘텐츠 테이블의 RLS를 켜고 브라우저의 직접 접근을 허용하지 않습니다.
+Secret key는 서버에서만 사용합니다. 이 프로젝트는 모든 콘텐츠 테이블의 RLS를 켜고 브라우저의 직접 접근을 허용하지 않습니다.
 
 ## 4. 기존 Markdown 글 옮기기
 
-로컬 환경에 `SUPABASE_URL`과 `SUPABASE_SERVICE_ROLE_KEY`를 설정한 뒤 한 번만 실행합니다.
+로컬 환경에 `SUPABASE_URL`과 `SUPABASE_SECRET_KEY`를 설정한 뒤 한 번만 실행합니다.
 
 ```bash
 npm run content:migrate
@@ -96,4 +96,4 @@ STUDIO_VERCEL_TEAM_ID=
 - 로그인 요청에는 CSRF 방지 state와 PKCE를 적용합니다.
 - 세션 쿠키는 서명되며 `HttpOnly`, `SameSite=Lax`, HTTPS에서는 `Secure` 속성을 사용합니다.
 - 글쓰기 API는 로그인과 동일 출처 요청을 확인합니다.
-- Supabase service role key, Vercel 토큰, Deploy Hook URL은 브라우저로 전달하지 않습니다.
+- Supabase Secret key, Vercel 토큰, Deploy Hook URL은 브라우저로 전달하지 않습니다.
