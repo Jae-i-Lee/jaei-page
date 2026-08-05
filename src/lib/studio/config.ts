@@ -22,7 +22,7 @@ export function getStudioConfig() {
     allowedUsername: readEnv("STUDIO_GITHUB_USERNAME") || "Jae-i-Lee",
     baseUrl: readEnv("STUDIO_BASE_URL"),
     supabaseUrl: readEnv("SUPABASE_URL"),
-    supabaseServiceRoleKey: readEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    supabaseSecretKey: readEnv("SUPABASE_SECRET_KEY"),
     deployHookUrl: readEnv("STUDIO_VERCEL_DEPLOY_HOOK_URL"),
     vercelToken: readEnv("STUDIO_VERCEL_TOKEN"),
     vercelProjectId: readEnv("STUDIO_VERCEL_PROJECT_ID"),
@@ -43,8 +43,8 @@ export function getStudioReadiness() {
   if (config.sessionSecret.length < 32)
     authMissing.push("STUDIO_SESSION_SECRET (32자 이상)");
   if (!config.supabaseUrl) databaseMissing.push("SUPABASE_URL");
-  if (!config.supabaseServiceRoleKey)
-    databaseMissing.push("SUPABASE_SERVICE_ROLE_KEY");
+  if (!config.supabaseSecretKey.startsWith("sb_secret_"))
+    databaseMissing.push("SUPABASE_SECRET_KEY (sb_secret_... 형식)");
   if (!config.deployHookUrl)
     publishingMissing.push("STUDIO_VERCEL_DEPLOY_HOOK_URL");
   if (!config.vercelToken) analyticsMissing.push("STUDIO_VERCEL_TOKEN");

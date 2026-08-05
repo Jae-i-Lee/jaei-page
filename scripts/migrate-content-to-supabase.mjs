@@ -3,11 +3,13 @@ import { extname, join, parse } from "node:path";
 import { parse as parseYaml } from "yaml";
 
 const url = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const key = process.env.SUPABASE_SECRET_KEY || "";
 const categories = ["psychology", "philosophy", "reflections"];
 
-if (!url || !key) {
-  throw new Error("SUPABASE_URL과 SUPABASE_SERVICE_ROLE_KEY가 필요합니다.");
+if (!url || !key.startsWith("sb_secret_")) {
+  throw new Error(
+    "SUPABASE_URL과 sb_secret_ 형식의 SUPABASE_SECRET_KEY가 필요합니다.",
+  );
 }
 
 function parseMarkdown(content, category, filename) {
@@ -46,7 +48,6 @@ const response = await fetch(`${url}/rest/v1/posts?on_conflict=category,slug`, {
   method: "POST",
   headers: {
     apikey: key,
-    Authorization: `Bearer ${key}`,
     "Content-Type": "application/json",
     Prefer: "resolution=merge-duplicates,return=minimal",
   },
