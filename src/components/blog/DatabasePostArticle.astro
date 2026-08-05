@@ -1,0 +1,65 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Schema from "@/components/seo/Schema.astro";
+import type { BlogPost } from "@/lib/blog";
+
+export interface Props {
+  post: BlogPost;
+  html: string;
+}
+
+const { post, html } = Astro.props;
+const formattedDate = post.pubDate.toLocaleDateString("ko-KR", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  timeZone: "UTC",
+});
+const metadata = {
+  title: post.title,
+  description: post.description,
+  ogImage: post.image,
+};
+---
+
+<BaseLayout metadata={metadata}>
+  <Schema
+    type="BlogPosting"
+    data={{
+      title: post.title,
+      description: post.description,
+      image: post.image,
+      pubDate: post.pubDate,
+      author: post.author,
+      url: Astro.url.href,
+    }}
+  />
+
+  <article class="mx-auto max-w-3xl px-6 py-20 sm:px-8 sm:py-32">
+    <header class="mb-16 text-center sm:text-left">
+      <time
+        datetime={post.pubDate.toISOString()}
+        class="mb-4 block font-sans text-sm uppercase tracking-widest text-gray-400 dark:text-gray-500"
+      >
+        {formattedDate}
+      </time>
+      <h1
+        class="mb-6 font-sans text-2xl font-bold leading-tight tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl md:text-4xl"
+      >
+        {post.title}
+      </h1>
+      <p
+        class="font-sans text-lg leading-relaxed text-gray-600 dark:text-gray-400"
+      >
+        {post.description}
+      </p>
+    </header>
+
+    <div class="mb-16 h-px w-full bg-gray-200 dark:bg-gray-800"></div>
+
+    <div
+      class="prose prose-lg max-w-none prose-headings:font-sans prose-headings:font-bold prose-headings:tracking-tight prose-p:font-serif prose-p:leading-loose prose-p:text-gray-800 prose-a:font-sans prose-a:text-gray-900 prose-a:underline-offset-4 prose-blockquote:border-l-gray-300 prose-blockquote:font-serif prose-blockquote:font-normal prose-blockquote:not-italic prose-blockquote:text-gray-500 dark:prose-invert dark:prose-p:text-gray-200 dark:prose-a:text-gray-100"
+      set:html={html}
+    />
+  </article>
+</BaseLayout>

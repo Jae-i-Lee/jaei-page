@@ -8,86 +8,41 @@ const metadata = {
 ---
 
 <BaseLayout metadata={metadata}>
-  <section
-    class="mx-auto max-w-3xl px-6 py-16 sm:px-8 sm:py-24 md:py-28"
-  >
+  <section class="mx-auto max-w-3xl px-6 py-16 sm:px-8 sm:py-24 md:py-28">
     <!-- 프로필 헤더 -->
-    <header
-      class="
-        flex items-center justify-between gap-8
-      "
-    >
+    <header>
       <div class="min-w-0">
         <h1
-          class="
-            mb-4 font-sans text-3xl font-bold
+          class="mb-4 font-sans text-3xl font-bold
             tracking-tight text-gray-900
-            dark:text-gray-100
-          "
+            dark:text-gray-100"
         >
           About
         </h1>
 
         <p
-          class="
-            font-serif text-base leading-loose
-            text-gray-700 dark:text-gray-300
-          "
+          class="font-serif text-base leading-loose
+            text-gray-700 dark:text-gray-300"
         >
           생각이 많고, 때로는 그 생각 속에 오래 머무는 사람입니다.
         </p>
       </div>
-
-      <figure class="shrink-0" aria-label="네로 캐릭터">
-        <div
-          class="
-            relative h-24 w-24 overflow-hidden rounded-full
-            border border-white/80
-            bg-gradient-to-br
-            from-blue-50/90 via-white/80 to-purple-50/90
-            shadow-[0_10px_28px_rgba(75,85,130,0.10)]
-            ring-1 ring-gray-200/70
-            dark:border-gray-700/60
-            dark:from-slate-900/80
-            dark:via-slate-900/60
-            dark:to-indigo-950/50
-            dark:ring-gray-700/70
-            sm:h-28 sm:w-28
-          "
-        >
-          <img
-            src="/images/nero-about.png"
-            alt="네로"
-            class="
-              pointer-events-none absolute inset-x-0 bottom-0
-              h-auto w-full scale-[1.08]
-              select-none object-contain
-            "
-            loading="eager"
-            decoding="async"
-          />
-        </div>
-      </figure>
     </header>
 
     <!-- 프로필과 본문의 경계 -->
     <div
       aria-hidden="true"
-      class="
-        my-10 h-px w-full
+      class="my-10 h-px w-full
         bg-gradient-to-r
         from-transparent via-gray-200 to-transparent
-        dark:via-gray-700
-      "
+        dark:via-gray-700"
     >
     </div>
 
     <!-- 소개문 -->
     <div
-      class="
-        space-y-8 font-serif text-base leading-loose
-        text-gray-700 dark:text-gray-300
-      "
+      class="space-y-8 font-serif text-base leading-loose
+        text-gray-700 dark:text-gray-300"
     >
       <p>
         무엇이 정상이고 비정상인지,<br />
@@ -103,20 +58,17 @@ const metadata = {
 
       <p>
         이곳에는 그 과정에서 떠오른 생각들을 기록합니다.<br />
-        철학과 심리학, 지나간 기억과 아직 끝나지 않은 질문들에 관하여
-        씁니다.
+        철학과 심리학, 지나간 기억과 아직 끝나지 않은 질문들에 관하여 씁니다.
       </p>
     </div>
 
     <!-- 시그니처 문장 -->
     <blockquote
-      class="
-        mt-14 border-l-2 border-gray-200 pl-6
+      class="mt-14 border-l-2 border-gray-200 pl-6
         font-serif italic leading-loose
         text-gray-500
         dark:border-gray-700 dark:text-gray-400
-        sm:pl-8
-      "
+        sm:pl-8"
     >
       “우리는 종종 정답을 찾으려 밤을 헤매지만,<br />
       때로는 좋은 질문 하나를 남기는 것만으로도 충분한 밤이 있습니다.”

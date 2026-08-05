@@ -21,10 +21,9 @@ export function getStudioConfig() {
     sessionSecret: readEnv("STUDIO_SESSION_SECRET"),
     allowedUsername: readEnv("STUDIO_GITHUB_USERNAME") || "Jae-i-Lee",
     baseUrl: readEnv("STUDIO_BASE_URL"),
-    repoOwner: readEnv("STUDIO_REPO_OWNER") || "Jae-i-Lee",
-    repoName: readEnv("STUDIO_REPO_NAME") || "jaei-page",
-    defaultBranch: readEnv("STUDIO_REPO_BRANCH") || "main",
-    repoToken: readEnv("STUDIO_GITHUB_TOKEN"),
+    supabaseUrl: readEnv("SUPABASE_URL"),
+    supabaseServiceRoleKey: readEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    deployHookUrl: readEnv("STUDIO_VERCEL_DEPLOY_HOOK_URL"),
     vercelToken: readEnv("STUDIO_VERCEL_TOKEN"),
     vercelProjectId: readEnv("STUDIO_VERCEL_PROJECT_ID"),
     vercelTeamId: readEnv("STUDIO_VERCEL_TEAM_ID"),
@@ -34,7 +33,8 @@ export function getStudioConfig() {
 export function getStudioReadiness() {
   const config = getStudioConfig();
   const authMissing: string[] = [];
-  const repositoryMissing: string[] = [];
+  const databaseMissing: string[] = [];
+  const publishingMissing: string[] = [];
   const analyticsMissing: string[] = [];
 
   if (!config.oauthClientId) authMissing.push("STUDIO_GITHUB_CLIENT_ID");
@@ -42,17 +42,23 @@ export function getStudioReadiness() {
     authMissing.push("STUDIO_GITHUB_CLIENT_SECRET");
   if (config.sessionSecret.length < 32)
     authMissing.push("STUDIO_SESSION_SECRET (32자 이상)");
-  if (!config.repoToken) repositoryMissing.push("STUDIO_GITHUB_TOKEN");
+  if (!config.supabaseUrl) databaseMissing.push("SUPABASE_URL");
+  if (!config.supabaseServiceRoleKey)
+    databaseMissing.push("SUPABASE_SERVICE_ROLE_KEY");
+  if (!config.deployHookUrl)
+    publishingMissing.push("STUDIO_VERCEL_DEPLOY_HOOK_URL");
   if (!config.vercelToken) analyticsMissing.push("STUDIO_VERCEL_TOKEN");
   if (!config.vercelProjectId)
     analyticsMissing.push("STUDIO_VERCEL_PROJECT_ID");
 
   return {
     authReady: authMissing.length === 0,
-    repositoryReady: repositoryMissing.length === 0,
+    databaseReady: databaseMissing.length === 0,
+    publishingReady: publishingMissing.length === 0,
     analyticsReady: analyticsMissing.length === 0,
     authMissing,
-    repositoryMissing,
+    databaseMissing,
+    publishingMissing,
     analyticsMissing,
   };
 }
