@@ -64,7 +64,6 @@ export function getStudioReadiness() {
 }
 
 export function getOAuthCallbackUrl(requestUrl: string): string {
-  const config = getStudioConfig();
-  const base = config.baseUrl || new URL(requestUrl).origin;
+  const base = new URL(requestUrl).origin;
   return new URL("/api/studio/auth/callback", base).toString();
 }

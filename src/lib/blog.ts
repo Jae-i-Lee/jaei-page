@@ -104,8 +104,19 @@ export async function getPublishedPost(
   return posts[0] ? fromDatabase(posts[0]) : null;
 }
 
+function preserveExtraBlankLines(body: string): string {
+  return body.replace(/\r\n?/g, "\n").replace(/\n{3,}/g, (newlines) => {
+    const extraBlankLines = newlines.length - 2;
+    const spacers = Array.from(
+      { length: extraBlankLines },
+      () => '<div class="markdown-extra-blank-line" aria-hidden="true"></div>',
+    ).join("\n\n");
+    return `\n\n${spacers}\n\n`;
+  });
+}
+
 export function renderPostMarkdown(body: string): string {
-  return marked.parse(body, {
+  return marked.parse(preserveExtraBlankLines(body), {
     async: false,
     breaks: true,
     gfm: true,
