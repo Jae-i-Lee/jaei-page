@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @plugin "@tailwindcss/typography";
@@ -16,7 +17,8 @@
     -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue",
     "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic",
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-  --font-serif: serif;
+  --font-serif:
+    "Noto Serif KR", "AppleMyungjo", "Batang", "Times New Roman", serif;
 }
 
 :root {
