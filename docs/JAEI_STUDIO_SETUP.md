@@ -9,8 +9,8 @@ Jaei Studio는 `/studio`에서 사용하는 비공개 글쓰기·통계 작업�
 GitHub에서 **Settings → Developer settings → OAuth Apps → New OAuth App**으로 이동합니다.
 
 - Application name: `Jaei Studio`
-- Homepage URL: `https://jaei-page.vercel.app/studio`
-- Authorization callback URL: `https://jaei-page.vercel.app/api/studio/auth/callback`
+- Homepage URL: `https://jaei.page/studio`
+- Authorization callback URL: `https://jaei.page/api/studio/auth/callback`
 
 생성 후 Client ID와 Client secret을 다음 환경변수로 등록합니다.
 
@@ -18,8 +18,9 @@ GitHub에서 **Settings → Developer settings → OAuth Apps → New OAuth App*
 STUDIO_GITHUB_CLIENT_ID
 STUDIO_GITHUB_CLIENT_SECRET
 STUDIO_GITHUB_USERNAME=Jae-i-Lee
-STUDIO_BASE_URL=https://jaei-page.vercel.app
 ```
+
+OAuth callback 주소는 Studio에 접속한 현재 도메인을 기준으로 생성됩니다. Production에서는 `https://jaei.page/studio`로 접속하고, GitHub OAuth App의 callback URL도 위의 `https://jaei.page/api/studio/auth/callback`으로 맞춰 둡니다.
 
 GitHub는 작업실 로그인과 사용자 확인에만 사용합니다. 저장소 쓰기 권한이나 Personal Access Token은 필요하지 않습니다.
 
@@ -81,7 +82,7 @@ STUDIO_VERCEL_TEAM_ID=
 
 ## 7. 사용 흐름
 
-1. `https://jaei-page.vercel.app/studio`에서 GitHub로 로그인
+1. `https://jaei.page/studio`에서 GitHub로 로그인
 2. 새 글을 쓰거나 발행된 글의 `수정` 선택
 3. `임시저장`으로 DB에 비공개 초안 저장
 4. 준비되면 `바로 공개` 또는 작업실의 `공개하기` 선택
