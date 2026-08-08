@@ -20,10 +20,21 @@ import { siteConfig } from "@/config/site";
         >
           X
         </a>
+        <a
+          href={siteConfig.socialLinks.instagram}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-muted-foreground transition-colors hover:text-primary"
+        >
+          Instagram
+        </a>
       </div>
     </div>
-    <div class="mt-8 border-t border-border pt-8 text-center text-xs text-muted-foreground">
-      &copy; {new Date().getFullYear()} {siteConfig.author}. All rights reserved.
+    <div
+      class="mt-8 border-t border-border pt-8 text-center text-xs text-muted-foreground"
+    >
+      &copy; {new Date().getFullYear()}
+      {siteConfig.author}. All rights reserved.
     </div>
   </div>
 </footer>
