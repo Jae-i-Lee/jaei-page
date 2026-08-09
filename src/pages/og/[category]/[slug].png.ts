@@ -36,8 +36,8 @@ function visualUnits(value: string): number {
 
 function titleFontSize(title: string): number {
   const units = Math.max(visualUnits(title), 1);
-  const estimated = Math.floor((CONTENT_WIDTH / units) * 0.92);
-  return Math.max(30, Math.min(62, estimated));
+  const estimated = Math.floor((CONTENT_WIDTH / units) * 0.9);
+  return Math.max(22, Math.min(62, estimated));
 }
 
 function wrapDescription(description: string): string[] {
@@ -111,8 +111,6 @@ export const GET: APIRoute = async ({ params, request }) => {
 
   const svg = `
     <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="1200" height="630" fill="#FFFFFF" />
-      <rect x="0" y="0" width="1200" height="630" fill="url(#softGlow)" opacity="0.7" />
       <defs>
         <linearGradient id="softGlow" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stop-color="#F8FAFF" />
@@ -120,6 +118,8 @@ export const GET: APIRoute = async ({ params, request }) => {
           <stop offset="1" stop-color="#FBF8FF" />
         </linearGradient>
       </defs>
+      <rect width="1200" height="630" fill="#FFFFFF" />
+      <rect x="0" y="0" width="1200" height="630" fill="url(#softGlow)" opacity="0.7" />
 
       ${signatureSvg}
       <text x="${signature ? LEFT + 54 : LEFT}" y="84" font-size="22" font-weight="700" fill="#181A1F" font-family="Arial, 'Noto Sans CJK KR', 'Noto Sans KR', sans-serif">Jaei.page</text>
@@ -127,7 +127,7 @@ export const GET: APIRoute = async ({ params, request }) => {
       <text x="${LEFT}" y="202" font-size="20" font-weight="700" letter-spacing="2.8" fill="#5276B8" font-family="Arial, 'Noto Sans CJK KR', 'Noto Sans KR', sans-serif">${categoryLabel}</text>
       <line x1="${LEFT}" y1="226" x2="122" y2="226" stroke="#8BAEE9" stroke-width="2" />
 
-      <text x="${LEFT}" y="360" font-size="${fontSize}" font-weight="700" fill="#101114" font-family="Arial, 'Noto Sans CJK KR', 'Noto Sans KR', sans-serif" textLength="${Math.min(CONTENT_WIDTH, visualUnits(post.title) * fontSize)}" lengthAdjust="spacingAndGlyphs">${escapeXml(post.title)}</text>
+      <text x="${LEFT}" y="360" font-size="${fontSize}" font-weight="700" fill="#101114" font-family="Arial, 'Noto Sans CJK KR', 'Noto Sans KR', sans-serif">${escapeXml(post.title)}</text>
 
       ${descriptionSvg}
 
