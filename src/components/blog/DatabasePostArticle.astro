@@ -2,7 +2,7 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Schema from "@/components/seo/Schema.astro";
 import type { BlogPost } from "@/lib/blog";
-import { getPostOgImagePath } from "@/lib/post-og";
+import { getPostSocialImage } from "@/lib/post-og";
 
 export interface Props {
   post: BlogPost;
@@ -16,7 +16,7 @@ const formattedDate = post.pubDate.toLocaleDateString("ko-KR", {
   day: "numeric",
   timeZone: "UTC",
 });
-const ogImage = post.image ?? getPostOgImagePath(post);
+const ogImage = getPostSocialImage(post);
 const metadata = {
   title: post.title,
   description: post.description,
