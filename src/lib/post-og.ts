@@ -9,6 +9,8 @@ type PostOgIdentity = {
   updatedAt?: string;
 };
 
+const OG_RENDERER_VERSION = "2026-08-09-korean-font-v2";
+
 function hashText(value: string): string {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -21,6 +23,7 @@ function hashText(value: string): string {
 export function getPostOgImagePath(post: PostOgIdentity): string {
   const version = hashText(
     [
+      OG_RENDERER_VERSION,
       post.title,
       post.description,
       post.updatedAt ?? post.pubDate.toISOString(),
