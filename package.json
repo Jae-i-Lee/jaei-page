@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
+    "prebuild": "npm run og:generate",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
@@ -13,9 +14,10 @@
     "fix": "npm run format && npm run lint",
     "test": "vitest",
     "check": "astro check",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "astro sync && tsc --noEmit",
     "build-preview": "npm run build && npm run preview",
     "content:migrate": "node scripts/migrate-content-to-supabase.mjs",
+    "og:generate": "node scripts/generate-post-og.mjs",
     "prepare": "husky"
   },
   "dependencies": {
@@ -24,6 +26,7 @@
     "@astrojs/rss": "^4.0.18",
     "@astrojs/sitemap": "^3.7.3",
     "@astrojs/vercel": "^10.0.8",
+    "@expo-google-fonts/noto-sans-kr": "^0.4.3",
     "@iconify-json/lucide": "^1.2.111",
     "@iconify-json/tabler": "^1.2.35",
     "@tailwindcss/vite": "^4.3.0",
@@ -33,6 +36,7 @@
     "marked": "^16.4.2",
     "remark-breaks": "^4.0.0",
     "remark-reading-time": "^2.1.0",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.3.0",
     "typescript": "^5.9.3",
     "yaml": "^2.9.0"
