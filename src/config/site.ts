@@ -2,7 +2,7 @@ import ogImage from "@/assets/og-image.png";
 
 export const siteConfig = {
   name: "Jaei.page",
-  description: "지나간 생각과 아직 끝나지 않은 질문을 기록합니다.",
+  description: "철학과 심리, 지나간 생각과 아직 끝나지 않은 질문을 기록합니다.",
   url: "https://jaei.page",
   lang: "ko",
   locale: "ko_KR",
