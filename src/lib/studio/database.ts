@@ -1,7 +1,6 @@
 import { getStudioConfig } from "@/lib/studio/config";
 import { StudioHttpError } from "@/lib/studio/http";
 import {
-  buildPostPath,
   type StudioPost,
   type StudioPostInput,
   validateSourcePath,
@@ -23,6 +22,12 @@ type StoredPost = {
   created_at: string;
   updated_at: string;
   published_at?: string;
+};
+
+type StoredPostRedirect = {
+  category: StudioPostInput["category"];
+  slug: string;
+  post_id: string;
 };
 
 export type StudioDraft = {
@@ -74,6 +79,12 @@ async function getRows(
   );
 }
 
+async function getRedirectRows(filters: string): Promise<StoredPostRedirect[]> {
+  return supabaseRequest<StoredPostRedirect[]>(
+    `/rest/v1/post_redirects?select=category,slug,post_id&${filters}&limit=1`,
+  );
+}
+
 export async function listPublishedPosts(): Promise<StudioPost[]> {
   const rows = await supabaseRequest<StoredPost[]>(
     "/rest/v1/posts?select=*&order=pub_date.desc,created_at.desc",
@@ -87,7 +98,13 @@ export async function getStudioPost(path: string): Promise<StudioPost> {
   if (drafts[0]) return toStudioPost(drafts[0]);
 
   const posts = await getRows("posts", filters);
-  if (posts[0]) return toStudioPost(posts[0]);
+  if (posts[0]) {
+    const relatedDrafts = await getRows(
+      "post_drafts",
+      `source_post_id=eq.${encodeURIComponent(posts[0].id)}`,
+    );
+    return toStudioPost(relatedDrafts[0] ?? posts[0]);
+  }
   throw new StudioHttpError(404, "글을 찾지 못했습니다.");
 }
 
@@ -110,22 +127,67 @@ export async function listStudioDrafts(): Promise<StudioDraft[]> {
 export async function saveStudioDraft(
   post: StudioPostInput,
 ): Promise<StudioDraft> {
-  const path = buildPostPath(post);
-  const filters = postFilters(path);
-  const [published, existingDraft] = await Promise.all([
-    getRows("posts", filters),
-    getRows("post_drafts", filters),
+  const targetPath = `src/content/${post.category}/${post.slug}.md`;
+  const targetFilters = postFilters(targetPath);
+  const lookupPath = post.sourcePath ?? targetPath;
+  const sourceFilters = postFilters(lookupPath);
+  const [
+    sourcePublished,
+    sourceDrafts,
+    targetPublished,
+    targetDrafts,
+    targetRedirects,
+  ] = await Promise.all([
+    post.sourcePath ? getRows("posts", sourceFilters) : Promise.resolve([]),
+    post.sourcePath
+      ? getRows("post_drafts", sourceFilters)
+      : Promise.resolve([]),
+    getRows("posts", targetFilters),
+    getRows("post_drafts", targetFilters),
+    getRedirectRows(targetFilters),
   ]);
+  let published = sourcePublished;
+  let existingDraft = sourceDrafts;
 
-  if (!post.sourcePath && published[0] && !existingDraft[0]) {
+  const sourcePostId =
+    published[0]?.id ?? existingDraft[0]?.source_post_id ?? null;
+  if (sourcePostId) {
+    [published, existingDraft] = await Promise.all([
+      published[0]
+        ? Promise.resolve(published)
+        : getRows("posts", `id=eq.${encodeURIComponent(sourcePostId)}`),
+      getRows(
+        "post_drafts",
+        `source_post_id=eq.${encodeURIComponent(sourcePostId)}`,
+      ),
+    ]);
+  }
+
+  const targetPostBelongsToSource =
+    targetPublished[0]?.id && targetPublished[0].id === sourcePostId;
+  const targetDraftIsCurrent =
+    targetDrafts[0]?.id && targetDrafts[0].id === existingDraft[0]?.id;
+  const targetRedirectBelongsToSource =
+    targetRedirects[0]?.post_id && targetRedirects[0].post_id === sourcePostId;
+
+  if (targetPublished[0] && !targetPostBelongsToSource) {
+    throw new StudioHttpError(409, "같은 URL 이름의 글이 이미 있습니다.");
+  }
+  if (targetDrafts[0] && !targetDraftIsCurrent) {
+    throw new StudioHttpError(409, "같은 URL 이름의 초안이 이미 있습니다.");
+  }
+  if (targetRedirects[0] && !targetRedirectBelongsToSource) {
     throw new StudioHttpError(
       409,
-      "같은 URL 이름의 글이 이미 있습니다. 글 목록에서 수정해 주세요.",
+      "이 URL 이름은 다른 글의 이전 주소로 사용 중입니다.",
     );
+  }
+  if (post.sourcePath && !published[0] && !existingDraft[0]) {
+    throw new StudioHttpError(404, "수정할 글이나 초안을 찾지 못했습니다.");
   }
 
   const payload = {
-    source_post_id: published[0]?.id ?? null,
+    source_post_id: sourcePostId,
     title: post.title,
     description: post.description,
     pub_date: post.pubDate,

@@ -1,17 +1,41 @@
 ---
 import DatabasePostArticle from "@/components/blog/DatabasePostArticle.astro";
-import { listPublishedPosts, renderPostMarkdown } from "@/lib/blog";
+import NotFoundPage from "@/components/NotFoundPage.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import {
+  getPostRedirect,
+  getPublishedPost,
+  renderPostMarkdown,
+} from "@/lib/blog";
 
-export async function getStaticPaths() {
-  const posts = await listPublishedPosts("reflections");
-  return posts.map((post) => ({
-    params: { slug: post.slug },
-    props: { post },
-  }));
+export const prerender = false;
+
+const slug = Astro.params.slug ?? "";
+const post =
+  slug && !slug.includes("/")
+    ? await getPublishedPost("reflections", slug)
+    : null;
+
+if (!post && slug) {
+  const redirect = await getPostRedirect("reflections", slug);
+  if (redirect) {
+    return Astro.redirect(
+      `/${redirect.targetCategory}/${encodeURIComponent(redirect.targetSlug)}`,
+      301,
+    );
+  }
 }
 
-const { post } = Astro.props;
-const html = renderPostMarkdown(post.body);
+if (!post) Astro.response.status = 404;
+const html = post ? renderPostMarkdown(post.body) : "";
 ---
 
-<DatabasePostArticle {post} {html} />
+{
+  post ? (
+    <DatabasePostArticle {post} {html} />
+  ) : (
+    <BaseLayout metadata={{ title: "페이지를 찾을 수 없습니다" }}>
+      <NotFoundPage />
+    </BaseLayout>
+  )
+}

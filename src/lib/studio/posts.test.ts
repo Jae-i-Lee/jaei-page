@@ -44,12 +44,22 @@ describe("Jaei Studio posts", () => {
     expect(validateSourcePath("../../package.json")).toBe(false);
   });
 
-  it("prevents changing an existing post URL through the editor", () => {
+  it("allows changing an existing post URL through the editor", () => {
     expect(() =>
       validatePostInput({
         ...post,
         slug: "바뀐-주소",
         sourcePath: "src/content/reflections/마음에-남은-여름.md",
+      }),
+    ).not.toThrow();
+  });
+
+  it("prevents moving an existing post to another category", () => {
+    expect(() =>
+      validatePostInput({
+        ...post,
+        category: "psychology",
+        sourcePath: "src/content/reflections/old-address.md",
       }),
     ).toThrow(StudioHttpError);
   });

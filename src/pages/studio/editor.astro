@@ -159,11 +159,11 @@ const readiness = getStudioReadiness();
             />
           </div>
           <p
-            id="path-lock-note"
+            id="path-change-note"
             class="mt-2 hidden text-xs text-muted-foreground"
           >
-            기존 링크를 지키기 위해 수정할 때는 카테고리와 URL 이름이
-            고정됩니다.
+            URL 이름을 변경하면 이전 주소는 새 주소로 자동 연결됩니다.
+            카테고리는 기존 링크를 위해 고정됩니다.
           </p>
         </div>
 
@@ -388,8 +388,7 @@ const readiness = getStudioReadiness();
     if (heading) heading.textContent = post.title;
     fieldset?.removeAttribute("disabled");
     categoryInput.disabled = true;
-    slugInput.disabled = true;
-    document.querySelector("#path-lock-note")?.classList.remove("hidden");
+    document.querySelector("#path-change-note")?.classList.remove("hidden");
   }
 
   async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
