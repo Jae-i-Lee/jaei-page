@@ -38,8 +38,9 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 1. Supabase 프로젝트를 만듭니다.
 2. SQL Editor에서 `supabase/migrations/202608050001_create_blog_content.sql`을 실행합니다.
-3. Project Settings의 API Keys에서 Project URL을 확인하고 `sb_secret_`으로 시작하는 Secret key를 새로 만듭니다.
-4. Vercel에 다음 환경변수를 등록합니다.
+3. 이어서 `supabase/migrations/202608090001_add_post_redirects.sql`을 실행합니다. 기존 Studio에도 이 두 번째 마이그레이션을 적용해야 URL 변경과 이전 주소 연결이 동작합니다.
+4. Project Settings의 API Keys에서 Project URL을 확인하고 `sb_secret_`으로 시작하는 Secret key를 새로 만듭니다.
+5. Vercel에 다음 환경변수를 등록합니다.
 
 ```text
 SUPABASE_URL

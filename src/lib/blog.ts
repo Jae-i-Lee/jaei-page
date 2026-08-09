@@ -33,6 +33,19 @@ type DatabasePost = {
   updated_at: string;
 };
 
+type DatabasePostRedirect = {
+  category: StudioCategory;
+  slug: string;
+  post: Pick<DatabasePost, "category" | "slug"> | null;
+};
+
+export type BlogPostRedirect = {
+  category: StudioCategory;
+  slug: string;
+  targetCategory: StudioCategory;
+  targetSlug: string;
+};
+
 function fromDatabase(post: DatabasePost): BlogPost {
   return {
     id: post.id,
@@ -102,6 +115,25 @@ export async function getPublishedPost(
     `/rest/v1/posts?select=*&category=eq.${encodeURIComponent(category)}&slug=eq.${encodeURIComponent(slug)}&limit=1`,
   );
   return posts[0] ? fromDatabase(posts[0]) : null;
+}
+
+export async function getPostRedirect(
+  category: StudioCategory,
+  slug: string,
+): Promise<BlogPostRedirect | null> {
+  if (!isSupabaseConfigured()) return null;
+
+  const redirects = await supabaseRequest<DatabasePostRedirect[]>(
+    `/rest/v1/post_redirects?select=category,slug,post:posts!post_redirects_post_id_fkey(category,slug)&category=eq.${encodeURIComponent(category)}&slug=eq.${encodeURIComponent(slug)}&limit=1`,
+  );
+  const redirect = redirects[0];
+  if (!redirect?.post) return null;
+  return {
+    category: redirect.category,
+    slug: redirect.slug,
+    targetCategory: redirect.post.category,
+    targetSlug: redirect.post.slug,
+  };
 }
 
 function preserveExtraBlankLines(body: string): string {

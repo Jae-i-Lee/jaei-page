@@ -96,11 +96,10 @@ export function validatePostInput(value: unknown): StudioPostInput {
   if (sourcePath) {
     const sourceParts = sourcePath.split("/");
     const sourceCategory = sourceParts[2];
-    const sourceSlug = (sourceParts.at(-1) || "").replace(/\.(md|mdx)$/, "");
-    if (sourceCategory !== category || sourceSlug !== slug) {
+    if (sourceCategory !== category) {
       throw new StudioHttpError(
         400,
-        "기존 글을 수정할 때는 카테고리와 URL 이름을 바꿀 수 없습니다.",
+        "기존 글을 수정할 때는 카테고리를 바꿀 수 없습니다.",
       );
     }
   }
