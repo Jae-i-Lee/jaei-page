@@ -13,8 +13,8 @@ export const prerender = false;
 
 const WIDTH = 1200;
 const HEIGHT = 630;
-const LEFT = 78;
-const CONTENT_WIDTH = 1044;
+const LEFT = 88;
+const CONTENT_WIDTH = 1024;
 const FONT_FAMILY = "Nanum Gothic";
 const REGULAR_FONT_URL =
   "https://raw.githubusercontent.com/google/fonts/main/ofl/nanumgothic/NanumGothic-Regular.ttf";
@@ -43,16 +43,16 @@ function escapeMarkup(value: string): string {
 
 function visualUnits(value: string): number {
   return Array.from(value).reduce((total, character) => {
-    if (/\s/.test(character)) return total + 0.33;
-    if (character.charCodeAt(0) <= 0x007f) return total + 0.57;
+    if (/\s/.test(character)) return total + 0.34;
+    if (character.charCodeAt(0) <= 0x007f) return total + 0.56;
     return total + 1;
   }, 0);
 }
 
 function titleFontSize(title: string): number {
   const units = Math.max(visualUnits(title), 1);
-  const estimated = Math.floor((CONTENT_WIDTH / units) * 0.82);
-  return Math.max(22, Math.min(62, estimated));
+  const estimated = Math.floor((CONTENT_WIDTH / units) * 0.84);
+  return Math.max(24, Math.min(58, estimated));
 }
 
 function wrapDescription(description: string): string[] {
@@ -64,7 +64,7 @@ function wrapDescription(description: string): string[] {
 
   for (const word of words) {
     const candidate = current ? `${current} ${word}` : word;
-    if (visualUnits(candidate) <= 42 || !current) {
+    if (visualUnits(candidate) <= 46 || !current) {
       current = candidate;
       continue;
     }
@@ -93,8 +93,7 @@ async function cacheFont(url: string, filename: string): Promise<string> {
     await access(filepath);
     return filepath;
   } catch {
-    // Vercel runtime에는 한글 시스템 폰트가 없을 수 있으므로,
-    // 오픈소스 한글 폰트를 함수 인스턴스의 임시 디렉터리에 캐시합니다.
+    // Vercel 런타임에 한글 시스템 폰트가 없을 수 있어 임시 디렉터리에 캐시합니다.
   }
 
   const response = await fetch(url, {
@@ -162,7 +161,7 @@ async function loadSignature(requestUrl: URL): Promise<Buffer | null> {
     if (!response.ok) return null;
     const svg = Buffer.from(await response.arrayBuffer());
     return await sharp(svg)
-      .resize(42, 42, { fit: "contain" })
+      .resize(34, 34, { fit: "contain" })
       .png()
       .toBuffer();
   } catch {
@@ -191,76 +190,60 @@ export const GET: APIRoute = async ({ params, request }) => {
 
   const background = Buffer.from(`
     <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="softGlow" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#F8FAFF" />
-          <stop offset="0.48" stop-color="#FFFFFF" />
-          <stop offset="1" stop-color="#FBF8FF" />
-        </linearGradient>
-      </defs>
       <rect width="1200" height="630" fill="#FFFFFF" />
-      <rect width="1200" height="630" fill="url(#softGlow)" opacity="0.7" />
-      <line x1="${LEFT}" y1="226" x2="122" y2="226" stroke="#8BAEE9" stroke-width="2" />
+      <rect x="0" y="0" width="1200" height="630" fill="#FBFCFE" opacity="0.72" />
+      <line x1="${LEFT}" y1="164" x2="1112" y2="164" stroke="#E9EDF4" stroke-width="1" />
     </svg>
   `);
 
-  const [brand, categoryText, title, footer, ...descriptionImages] =
-    await Promise.all([
+  const [brand, categoryText, title, ...descriptionImages] = await Promise.all([
+    renderText({
+      text: "Jaei.page",
+      fontPath: bold,
+      size: 19,
+      color: "#181A1F",
+      weight: "bold",
+      width: 240,
+    }),
+    renderText({
+      text: categoryLabel,
+      fontPath: bold,
+      size: 16,
+      color: "#6F86B2",
+      weight: "bold",
+      width: 320,
+      letterSpacing: 2.2,
+    }),
+    renderText({
+      text: post.title,
+      fontPath: bold,
+      size: fontSize,
+      color: "#111318",
+      weight: "bold",
+    }),
+    ...descriptionLines.map((line) =>
       renderText({
-        text: "Jaei.page",
-        fontPath: bold,
-        size: 22,
-        color: "#181A1F",
-        weight: "bold",
-        width: 260,
-      }),
-      renderText({
-        text: categoryLabel,
-        fontPath: bold,
-        size: 20,
-        color: "#5276B8",
-        weight: "bold",
-        width: 360,
-        letterSpacing: 2.8,
-      }),
-      renderText({
-        text: post.title,
-        fontPath: bold,
-        size: fontSize,
-        color: "#101114",
-        weight: "bold",
-      }),
-      renderText({
-        text: "jaei.page",
+        text: line,
         fontPath: regular,
-        size: 18,
-        color: "#A0A4AD",
-        width: 220,
+        size: 24,
+        color: "#717680",
       }),
-      ...descriptionLines.map((line) =>
-        renderText({
-          text: line,
-          fontPath: regular,
-          size: 26,
-          color: "#666A73",
-        }),
-      ),
-    ]);
+    ),
+  ]);
 
   const layers: Array<{ input: Buffer; top: number; left: number }> = [
-    { input: brand, top: 59, left: signature ? LEFT + 54 : LEFT },
-    { input: categoryText, top: 182, left: LEFT },
-    { input: title, top: 300, left: LEFT },
-    { input: footer, top: 550, left: LEFT },
+    { input: brand, top: 70, left: signature ? LEFT + 46 : LEFT },
+    { input: categoryText, top: 202, left: LEFT },
+    { input: title, top: 286, left: LEFT },
     ...descriptionImages.map((input, index) => ({
       input,
-      top: 438 + index * 42,
+      top: 404 + index * 38,
       left: LEFT,
     })),
   ];
 
   if (signature) {
-    layers.unshift({ input: signature, top: 54, left: LEFT });
+    layers.unshift({ input: signature, top: 65, left: LEFT });
   }
 
   const png = await sharp(background)
