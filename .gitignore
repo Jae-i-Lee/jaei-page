@@ -1,6 +1,7 @@
 # build output
 dist/
 .vercel/
+public/og/posts/
 # generated types
 .astro/
 
