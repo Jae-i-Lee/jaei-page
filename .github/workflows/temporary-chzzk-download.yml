@@ -1,6 +1,9 @@
 name: Temporary CHZZK corrected download
 
 on:
+  push:
+    branches:
+      - automation/chzzk-download-20260826
   pull_request:
     branches:
       - main
@@ -14,7 +17,7 @@ concurrency:
 
 jobs:
   inventory:
-    if: github.head_ref == 'automation/chzzk-download-20260826'
+    if: github.event_name == 'push' || github.head_ref == 'automation/chzzk-download-20260826'
     name: Verify all 42 clips
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -34,7 +37,7 @@ jobs:
           retention-days: 1
 
   clips:
-    if: github.head_ref == 'automation/chzzk-download-20260826'
+    if: github.event_name == 'push' || github.head_ref == 'automation/chzzk-download-20260826'
     name: Download corrected clips part ${{ matrix.part }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
