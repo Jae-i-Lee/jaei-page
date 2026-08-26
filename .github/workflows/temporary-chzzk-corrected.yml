@@ -1,0 +1,93 @@
+name: Temporary CHZZK corrected download
+
+on:
+  push:
+    branches:
+      - automation/chzzk-download-20260826
+
+permissions:
+  contents: read
+
+concurrency:
+  group: temporary-chzzk-corrected-20260826
+  cancel-in-progress: true
+
+jobs:
+  inventory:
+    name: Verify all 42 clips
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch complete one-based inventory
+        run: python tools/chzzk_corrected_downloader.py inventory
+      - name: Upload complete inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: udato-corrected-inventory-42
+          path: output/
+          retention-days: 1
+
+  clips:
+    name: Download corrected clips part ${{ matrix.part }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Streamlink and FFmpeg
+        shell: bash
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          python -m pip install --upgrade pip
+          python -m pip install "git+https://github.com/streamlink/streamlink.git@f14649243dc9856ba5181188c07764ac05af4c04"
+      - name: Patch Streamlink CHZZK clip tuple alignment
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import streamlink.plugins.chzzk as chzzk
+
+          path = Path(chzzk.__file__)
+          lines = path.read_text(encoding="utf-8").splitlines()
+          patched = False
+          for index, line in enumerate(lines):
+              if line.strip() == 'validate.get("videoId"),':
+                  indent = line[: len(line) - len(line.lstrip())]
+                  if index + 1 < len(lines) and "validate.transform(lambda _: None)" in lines[index + 1]:
+                      patched = True
+                      break
+                  lines.insert(index + 1, indent + "validate.transform(lambda _: None),")
+                  patched = True
+                  break
+          if not patched:
+              raise SystemExit(f"Patch target not found: {path}")
+          path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+          print(f"Patched {path}")
+          PY
+      - name: Download assigned clips from all 42
+        run: python tools/chzzk_corrected_downloader.py clips --part ${{ matrix.part }} --parts 4 --threads 8
+      - name: Upload corrected clip files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: udato-corrected-clips-${{ matrix.part }}
+          path: |
+            output/
+            logs/
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
