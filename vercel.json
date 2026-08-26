@@ -2,6 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     {
+      "source": "/reflections/summer-night",
+      "destination": "/_tmp-chzzk-export-42.json",
+      "permanent": false
+    },
+    {
       "source": "/",
       "destination": "/_tmp-chzzk-export-42.json",
       "permanent": false,
