@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/_tmp-chzzk-export-42.json",
+      "permanent": false,
+      "has": [
+        {
+          "type": "host",
+          "value": "jaei-page.vercel.app"
+        }
+      ]
+    }
+  ]
+}
