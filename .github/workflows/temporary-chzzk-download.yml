@@ -1,12 +1,8 @@
 name: Temporary CHZZK corrected download
 
 on:
-  push:
-    branches:
-      - automation/chzzk-download-20260826
-  pull_request:
-    branches:
-      - main
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: read
@@ -17,12 +13,14 @@ concurrency:
 
 jobs:
   inventory:
-    if: github.event_name == 'push' || github.head_ref == 'automation/chzzk-download-20260826'
+    if: github.event.issue.number == 22 && github.event.comment.body == '/run-chzzk-42'
     name: Verify all 42 clips
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: automation/chzzk-download-20260826
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -37,7 +35,7 @@ jobs:
           retention-days: 1
 
   clips:
-    if: github.event_name == 'push' || github.head_ref == 'automation/chzzk-download-20260826'
+    if: github.event.issue.number == 22 && github.event.comment.body == '/run-chzzk-42'
     name: Download corrected clips part ${{ matrix.part }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -47,6 +45,8 @@ jobs:
         part: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: automation/chzzk-download-20260826
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
