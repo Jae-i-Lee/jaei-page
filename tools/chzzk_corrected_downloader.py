@@ -17,6 +17,7 @@ from typing import Any
 
 CHANNEL_ID = "2048d5800616cc805f41b187c5868882"
 PAGE_SIZE = 24
+EXPECTED_CLIP_COUNT = 42
 OUT = Path("output")
 LOG = Path("logs")
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/151 Safari/537.36"
@@ -78,40 +79,61 @@ def rows(payload: Any) -> list[dict[str, Any]]:
     return []
 
 
+def next_cursor(payload: Any) -> dict[str, Any] | None:
+    if not isinstance(payload, dict):
+        return None
+    content = payload.get("content")
+    if not isinstance(content, dict):
+        return None
+    page = content.get("page")
+    if not isinstance(page, dict):
+        return None
+    value = page.get("next")
+    if not isinstance(value, dict):
+        return None
+    cursor = {str(key): item for key, item in value.items() if item not in (None, "")}
+    return cursor or None
+
+
 def fetch_clips() -> list[Clip]:
     result: list[Clip] = []
-    seen: set[str] = set()
+    seen_ids: set[str] = set()
+    seen_cursors: set[str] = set()
+    cursor: dict[str, Any] = {}
 
-    # CHZZK의 이 목록 API는 1-based 페이지입니다. page=0은 page=1과 같은 첫 페이지를 반환합니다.
-    for page in range(1, 1001):
-        query = urllib.parse.urlencode(
-            {
-                "filterType": "ALL",
-                "orderType": "RECENT",
-                "page": page,
-                "size": PAGE_SIZE,
-            }
-        )
-        items: list[dict[str, Any]] | None = None
+    # CHZZK 클립 목록은 숫자 page가 아니라 content.page.next의 커서를 다음 요청에 넘긴다.
+    for batch in range(1, 1001):
+        parameters: dict[str, Any] = {
+            "filterType": "ALL",
+            "orderType": "RECENT",
+            "page": 0,
+            "size": PAGE_SIZE,
+        }
+        parameters.update(cursor)
+        query = urllib.parse.urlencode(parameters)
+
+        payload: Any | None = None
         errors: list[str] = []
         for version in ("v1", "v2"):
             try:
                 endpoint = f"https://api.chzzk.naver.com/service/{version}/channels/{CHANNEL_ID}/clips?{query}"
-                items = rows(get_json(endpoint))
+                payload = get_json(endpoint)
                 break
             except Exception as exc:
                 errors.append(str(exc))
-        if items is None:
+        if payload is None:
             raise RuntimeError(" | ".join(errors))
+
+        items = rows(payload)
         if not items:
             break
 
         added = 0
         for item in items:
             uid = str(pick(item, "clipUID", "clipUid", "clipId", "clipNo")).strip()
-            if not uid or uid in seen:
+            if not uid or uid in seen_ids:
                 continue
-            seen.add(uid)
+            seen_ids.add(uid)
             added += 1
             result.append(
                 Clip(
@@ -124,11 +146,19 @@ def fetch_clips() -> list[Clip]:
                 )
             )
 
-        print(f"API page {page}: received={len(items)}, added={added}, total={len(result)}", flush=True)
-        if len(items) < PAGE_SIZE:
+        following = next_cursor(payload)
+        print(
+            f"API batch {batch}: received={len(items)}, added={added}, total={len(result)}, next={following}",
+            flush=True,
+        )
+
+        if following is None:
             break
-        if added == 0:
-            raise RuntimeError(f"페이지 {page}에서 새 ID가 하나도 없어 페이지네이션 오류로 중단합니다.")
+        marker = json.dumps(following, ensure_ascii=False, sort_keys=True)
+        if marker in seen_cursors:
+            raise RuntimeError(f"같은 커서가 반복되었습니다: {following}")
+        seen_cursors.add(marker)
+        cursor = following
 
     return result
 
@@ -233,15 +263,15 @@ def inventory_job(_: argparse.Namespace) -> int:
     }
     (folder / "요약.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(summary, ensure_ascii=False), flush=True)
-    if len(clips) != 42:
-        raise RuntimeError(f"예상한 42개가 아니라 {len(clips)}개가 조회되었습니다.")
+    if len(clips) != EXPECTED_CLIP_COUNT:
+        raise RuntimeError(f"예상한 {EXPECTED_CLIP_COUNT}개가 아니라 {len(clips)}개가 조회되었습니다.")
     return 0
 
 
 def clips_job(args: argparse.Namespace) -> int:
     all_clips = fetch_clips()
-    if len(all_clips) != 42:
-        raise RuntimeError(f"예상한 42개가 아니라 {len(all_clips)}개가 조회되었습니다.")
+    if len(all_clips) != EXPECTED_CLIP_COUNT:
+        raise RuntimeError(f"예상한 {EXPECTED_CLIP_COUNT}개가 아니라 {len(all_clips)}개가 조회되었습니다.")
     selected = [clip for index, clip in enumerate(all_clips) if index % args.parts == args.part]
     folder = OUT / f"클립_파트_{args.part + 1}"
     write_manifest(selected, folder)
